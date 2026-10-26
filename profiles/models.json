@@ -1,0 +1,86 @@
+{
+  "version": 1,
+  "preferenceOrder": ["openai", "opencode-go", "opencode-zen", "deepseek"],
+  "profiles": {
+    "openai": {
+      "label": "OpenAI",
+      "provider": "openai",
+      "lead": "openai/gpt-6.1-sol#high",
+      "implementation": "openai/gpt-6-luna#high",
+      "design": "openai/gpt-6-luna#medium",
+      "explore": "openai/gpt-6-luna#low",
+      "tester": "openai/gpt-6-luna#medium",
+      "helper": "openai/gpt-6-luna#low",
+      "solver": "openai/gpt-6-astra#high",
+      "solverMax": "openai/gpt-6-astra#max"
+    },
+    "opencode-go": {
+      "label": "OpenCode Go",
+      "provider": "opencode-go",
+      "lead": "opencode-go/minimax-m3#thinking",
+      "implementation": "opencode-go/deepseek-v4.1-flash#high",
+      "design": "opencode-go/kimi-k2.7-code",
+      "explore": "opencode-go/gpt-6-luna#low",
+      "tester": "opencode-go/deepseek-v4.1-flash#high",
+      "helper": "opencode-go/mimo-v2.6-flash",
+      "solver": "opencode-go/qwen3.8-max#medium",
+      "solverMax": "opencode-go/qwen3.8-max#xhigh"
+    },
+    "opencode-zen": {
+      "label": "OpenCode Zen",
+      "provider": "opencode",
+      "lead": "opencode/gpt-6.1-sol#high",
+      "implementation": "opencode/gpt-6-luna#high",
+      "design": "opencode/gpt-6-luna#medium",
+      "explore": "opencode/gpt-6-luna#low",
+      "tester": "opencode/gpt-6-luna#medium",
+      "helper": "opencode/gpt-6-luna#low",
+      "solver": "opencode/gpt-6-astra#high",
+      "solverMax": "opencode/gpt-6-astra#max"
+    },
+    "deepseek": {
+      "label": "Direct DeepSeek API",
+      "provider": "ocdb-deepseek",
+      "lead": "ocdb-deepseek/deepseek-flash#high",
+      "implementation": "ocdb-deepseek/deepseek-flash#high",
+      "design": "ocdb-deepseek/deepseek-flash#high",
+      "explore": "ocdb-deepseek/deepseek-flash#high",
+      "tester": "ocdb-deepseek/deepseek-flash#high",
+      "helper": "ocdb-deepseek/deepseek-flash#high",
+      "solver": "ocdb-deepseek/deepseek-v4-pro#high",
+      "solverMax": "ocdb-deepseek/deepseek-v4-pro#max",
+      "providers": {
+        "ocdb-deepseek": {
+          "name": "DeepSeek API",
+          "env": ["DEEPSEEK_API_KEY"],
+          "package": "@opencode/ai/providers/openai-compatible",
+          "settings": {
+            "baseURL": "https://api.deepseek.com"
+          },
+          "models": {
+            "deepseek-flash": {
+              "modelID": "deepseek-flash",
+              "body": {
+                "thinking": {"type": "enabled"}
+              },
+              "variants": [
+                {"id": "high", "body": {"reasoning_effort": "high"}},
+                {"id": "max", "body": {"reasoning_effort": "max"}}
+              ]
+            },
+            "deepseek-v4-pro": {
+              "modelID": "deepseek-v4-pro",
+              "body": {
+                "thinking": {"type": "enabled"}
+              },
+              "variants": [
+                {"id": "high", "body": {"reasoning_effort": "high"}},
+                {"id": "max", "body": {"reasoning_effort": "max"}}
+              ]
+            }
+          }
+        }
+      }
+    }
+  }
+}

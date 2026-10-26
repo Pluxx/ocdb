@@ -1,0 +1,50 @@
+{
+  "name": "opencode-openai-weekly",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22.18"
+  },
+  "exports": {
+    ".": "./index.ts",
+    "./tui": "./tui.tsx",
+    "./rpc": "./rpc.ts"
+  },
+  "scripts": {
+    "test": "node scripts/test.mjs",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@openai/codex": "0.164.0",
+    "@opencode/plugin": "2.1.4",
+    "proper-lockfile": "4.1.2"
+  },
+  "peerDependencies": {
+    "@opentui/core": ">=0.6.8 <0.7.0",
+    "@opentui/solid": ">=0.6.8 <0.7.0",
+    "solid-js": ">=1.9.12 <1.10.0"
+  },
+  "peerDependenciesMeta": {
+    "@opentui/core": {
+      "optional": true
+    },
+    "@opentui/solid": {
+      "optional": true
+    },
+    "solid-js": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@opentui/core": "0.6.8",
+    "@opentui/solid": "0.6.8",
+    "@types/node": "^24.0.0",
+    "@types/proper-lockfile": "4.1.4",
+    "solid-js": "1.9.12",
+    "typescript": "^5.9.0"
+  },
+  "overrides": {
+    "seroval": "1.7.2"
+  }
+}

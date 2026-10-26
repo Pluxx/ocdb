@@ -1,0 +1,19 @@
+{
+  "name": "vc-ocdb",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "vc-ocdb": "bin/vc-ocdb.mjs",
+    "ocdb": "bin/vc-ocdb.mjs"
+  },
+  "scripts": {
+    "test": "node --test 'test/*.test.mjs' && npm --prefix addons/openai-weekly test"
+  },
+  "dependencies": {
+    "jsonc-parser": "3.3.1"
+  }
+}
