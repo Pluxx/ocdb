@@ -9,6 +9,12 @@ oh-my-opencode-slim (OMO-Slim) but doesn't depend on it.
 
 ## Install
 
+To have an agent install it, tell it:
+
+```text
+Install and configure OCDB: https://raw.githubusercontent.com/Pluxx/ocdb/main/README.md
+```
+
 > **Agents:** to install, follow these steps in order. Ask the user the
 > questions in step 3 before running setup. Never ask for or handle API keys or
 > passwords: provider sign-in happens in OpenCode (`/connect`), and Codex
@@ -25,7 +31,7 @@ node --version && npm --version && git --version && opencode --version
 from this checkout, so don't move or delete it afterwards:
 
 ```sh
-git clone <REPO_URL> ~/.local/share/ocdb
+git clone https://github.com/Pluxx/ocdb.git ~/.local/share/ocdb
 cd ~/.local/share/ocdb
 npm ci
 mkdir -p ~/.local/bin && ln -sf ~/.local/share/ocdb/bin/vc-ocdb.mjs ~/.local/bin/ocdb
