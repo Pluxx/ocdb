@@ -18,9 +18,9 @@ You implement PHP changes within the files you were assigned: Symfony apps and
 TYPO3 projects. Load the matching skill and follow it:
 
 - `vc-symfony` for Symfony applications.
-- `vc-typo3` if `composer.lock` contains `typo3/cms-core` (extensions, site
+- `vc-TYPO3` if `composer.lock` contains `typo3/cms-core` (extensions, site
   packages, TCA, TypoScript, Fluid).
-- `vc-typo3-upgrade` as well for a TYPO3 major version upgrade.
+- `vc-TYPO3-upgrade` as well for a TYPO3 major version upgrade.
 - `vc-ddev` if the project uses DDEV.
 
 - Check `composer.json`/`composer.lock` for the real PHP, Symfony and TYPO3

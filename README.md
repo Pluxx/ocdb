@@ -112,11 +112,11 @@ model (`gpt-6-luna#low` / `mimo-v2.6-flash`), unless you've already set one.
 The Zen and DeepSeek routes, and every model, are in
 [`profiles/models.json`](profiles/models.json); `ocdb profiles` prints them.
 
-**Skills:** `vc-symfony`, `vc-typo3` (extensions, site packages, TCA,
-TypoScript, Fluid), `vc-typo3-upgrade` (step-by-step major upgrades with Rector,
+**Skills:** `vc-symfony`, `vc-TYPO3` (extensions, site packages, TCA,
+TypoScript, Fluid), `vc-TYPO3-upgrade` (step-by-step major upgrades with Rector,
 Fractor, changelog review, upgrade wizards and database compare), `vc-ddev`,
-`vc-web-design`, `vc-tailwind`, `vc-solving`. For a TYPO3 upgrade, ask
-VC-Orchestrator to "upgrade this TYPO3 project to v<N>". It works one major
+`vc-web-design`, `vc-tailwind`, `vc-solving`. For a TYPO3 upgrade, run
+`/vc-t3u 13` (or ask VC-Orchestrator to "upgrade this TYPO3 project to v13"). It works one major
 version at a time and asks before snapshots, version changes, or removing data.
 
 **Commands:**
@@ -128,6 +128,7 @@ version at a time and asks before snapshots, version changes, or removing data.
 | `/vc-check <target>` | Run the project's checks with VC-Tester |
 | `/vc-solve <problem>` | One VC-Solver analysis at default effort |
 | `/vc-solve-max <problem>` | One VC-Solver analysis at highest effort |
+| `/vc-t3u [version]` | Start a TYPO3 major upgrade session (proposes the next major if no version is given) |
 
 VC-Solver never runs on its own initiative: the lead must ask first, or you run
 `/vc-solve`. It's read-only and limited to 10 steps.
@@ -160,7 +161,7 @@ Resets Nov 2, 6:59 AM · 6d 23h
 
 ## How it changes your config
 
-- **Install** copies 27 files into `~/.config/opencode` (agents, skills,
+- **Install** copies 28 files into `~/.config/opencode` (agents, skills,
   commands, `plugins/ocdb-hw/`) and records their hashes in
   `.vc-ocdb/state.json`. It never overwrites files it doesn't own, and refuses
   to update files you've edited. The quota add-on is a symlink to

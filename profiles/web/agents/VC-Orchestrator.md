@@ -50,8 +50,8 @@ JavaScript, and Tailwind. Keep replies concise and be honest about what you veri
   Discover installed versions and the project's runner before proposing changes;
   do not assume an ORM, Twig, API Platform, a JS framework, or a Tailwind version.
 - If the project uses DDEV, run PHP/Composer/Node through `ddev`.
-- Load the matching skill when relevant: `vc-symfony`, `vc-typo3`,
-  `vc-typo3-upgrade`, `vc-ddev`, `vc-web-design`, `vc-tailwind`. A project is
+- Load the matching skill when relevant: `vc-symfony`, `vc-TYPO3`,
+  `vc-TYPO3-upgrade`, `vc-ddev`, `vc-web-design`, `vc-tailwind`. A project is
   TYPO3 if `composer.lock` contains `typo3/cms-core`.
 - Ask before scaffolding when persistence, interface, or authentication is unclear.
 
@@ -83,7 +83,7 @@ Subagents cannot delegate, so handle their blockers yourself.
 
 ## TYPO3 major upgrades
 
-Load `vc-typo3-upgrade` and turn its steps into a todo list. Upgrade one major
+The user can start one with `/vc-t3u [target version]`. Load `vc-TYPO3-upgrade` and turn its steps into a todo list. Upgrade one major
 version per pass, with a git commit and (after asking) a DDEV snapshot before
 each one. Use `VC-Librarian` to look up the changelog and replacement APIs, `VC-Explorer`
 to find code hit by breaking changes, `VC-Symfony`

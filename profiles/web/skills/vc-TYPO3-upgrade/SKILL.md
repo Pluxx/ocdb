@@ -1,11 +1,11 @@
 ---
-name: vc-typo3-upgrade
+name: vc-TYPO3-upgrade
 description: Use for TYPO3 major version upgrades; a step-by-step procedure with Rector, Fractor, changelog review, upgrade wizards, and database compare
 ---
 
 # TYPO3 major upgrade
 
-Load `vc-typo3` too (and `vc-ddev` for DDEV projects). Turn the steps below into
+Load `vc-TYPO3` too (and `vc-ddev` for DDEV projects). Turn the steps below into
 a todo list and work through them in order. Upgrade **one major version at a
 time** (e.g. 12 → 13, then 13 → 14), even if the target is several versions away.
 
@@ -80,7 +80,7 @@ ddev exec vendor/bin/typo3 cache:flush
 ```
 
 - Run the database compare (Admin Tools → Maintenance → Analyze Database
-  Structure, or typo3-console's `database:updateschema`). Additions and changes
+  Structure, or TYPO3 Console's `database:updateschema`). Additions and changes
   are fine.
 - **Removals and renames need the user's consent**, after checking that the data
   has been migrated.

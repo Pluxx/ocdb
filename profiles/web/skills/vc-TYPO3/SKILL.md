@@ -1,5 +1,5 @@
 ---
-name: vc-typo3
+name: vc-TYPO3
 description: Use for TYPO3 extensions, site packages, TCA, TypoScript, Fluid, and Extbase work; finds the installed TYPO3 version before choosing APIs
 ---
 
@@ -92,7 +92,7 @@ ddev exec vendor/bin/typo3 upgrade:list
 ```
 
 After adding or changing fields: run the database compare (`extension:setup`,
-typo3-console's `database:updateschema`, or Admin Tools → Maintenance → Analyze
+TYPO3 Console's `database:updateschema`, or Admin Tools → Maintenance → Analyze
 Database Structure), then flush caches. Never apply destructive schema changes,
 such as dropping or renaming fields and tables, without the user's consent.
 
