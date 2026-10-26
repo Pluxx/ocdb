@@ -7,7 +7,7 @@ import { spawnSync } from 'node:child_process';
 const repo = path.resolve('.');
 const profile = path.join(repo, 'profiles/web');
 const agents = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer'];
-const skills = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving'];
+const skills = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving', 'vc-typo3', 'vc-typo3-upgrade'];
 const commands = ['vc-web', 'vc-plan', 'vc-check', 'vc-solve', 'vc-solve-max'];
 
 async function markdownFiles(directory) {
@@ -29,7 +29,7 @@ function frontmatter(source) {
   return match[1];
 }
 
-test('assembled profile has exactly the 19 expected allowlisted Markdown assets and installs through CLI', async () => {
+test('assembled profile has exactly the 21 expected allowlisted Markdown assets and installs through CLI', async () => {
   const expected = [
     ...agents.map((id) => `agents/${id}.md`),
     ...skills.map((id) => `skills/${id}/SKILL.md`),
@@ -42,7 +42,7 @@ test('assembled profile has exactly the 19 expected allowlisted Markdown assets 
     const proc = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'install', '--apply', '--config-dir', destination], { cwd: repo, encoding: 'utf8' });
     assert.equal(proc.status, 0, proc.stderr);
     const state = JSON.parse(await readFile(path.join(destination, '.vc-ocdb/state.json'), 'utf8'));
-    assert.equal(Object.keys(state.assets).length, 24);
+    assert.equal(Object.keys(state.assets).length, 26);
     assert.deepEqual(Object.keys(state.assets).filter((rel) => !rel.startsWith('plugins/')).sort(), expected);
     assert.deepEqual(Object.keys(state.assets).filter((rel) => rel.startsWith('plugins/')).sort(), ['plugins/ocdb-hw/activity.mjs', 'plugins/ocdb-hw/index.ts', 'plugins/ocdb-hw/metrics.mjs', 'plugins/ocdb-hw/package.json', 'plugins/ocdb-hw/tui.tsx']);
   } finally { await rm(temp, { recursive: true, force: true }); }

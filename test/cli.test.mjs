@@ -9,7 +9,7 @@ const base = '/tmp/opencode';
 await mkdir(base, { recursive: true });
 const fixtures = new Set();
 const agentIds = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer'];
-const skillIds = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving'];
+const skillIds = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving', 'vc-typo3', 'vc-typo3-upgrade'];
 const commandIds = ['vc-web', 'vc-plan', 'vc-check', 'vc-solve', 'vc-solve-max'];
 async function setup() {
   const root = await mkdtemp(path.join(base, 'vc-ocdb-test-'));

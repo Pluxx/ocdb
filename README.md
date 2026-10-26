@@ -1,7 +1,7 @@
 # OCDB — Open Code Đặc Biệt
 
 "Đặc Biệt" is Vietnamese for "special". OCDB is a web-development setup for
-**OpenCode V2**, covering PHP, Symfony, DDEV, HTML/CSS/JS and Tailwind. It
+**OpenCode V2**, covering PHP, Symfony, TYPO3, DDEV, HTML/CSS/JS and Tailwind. It
 installs a lead agent with specialist subagents, skills, slash commands,
 per-provider model profiles, and two sidebar plugins: agent activity with
 CPU/RAM, and optionally your ChatGPT/Codex weekly quota. It replaces
@@ -100,7 +100,7 @@ To switch profile, run `deactivate`, then `setup` with the new profile.
 | `VC-Explorer` | Cheap read-only code search returning `path:line` locations | `gpt-6-luna#low` | `gpt-6-luna#low` |
 | `VC-Design` | Visual direction, layout, UX | `gpt-6-luna#medium` | `kimi-k2.7-code` |
 | `VC-Frontend` | HTML, CSS, JS, Tailwind | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
-| `VC-Symfony` | PHP/Symfony backend and tests | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
+| `VC-Symfony` | PHP backend and tests: Symfony, TYPO3 extensions/site packages/upgrades | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
 | `VC-DDEV` | DDEV diagnosis and fixes | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
 | `VC-Tester` | Runs checks, never edits | `gpt-6-luna#medium` | `deepseek-v4.1-flash#high` |
 | `VC-Reviewer` | Read-only review | inherits the lead | inherits the lead |
@@ -111,8 +111,12 @@ model (`gpt-6-luna#low` / `mimo-v2.6-flash`), unless you've already set one.
 The Zen and DeepSeek routes, and every model, are in
 [`profiles/models.json`](profiles/models.json); `ocdb profiles` prints them.
 
-**Skills:** `vc-symfony`, `vc-ddev`, `vc-web-design`, `vc-tailwind`,
-`vc-solving`.
+**Skills:** `vc-symfony`, `vc-typo3` (extensions, site packages, TCA,
+TypoScript, Fluid), `vc-typo3-upgrade` (step-by-step major upgrades with Rector,
+Fractor, changelog review, upgrade wizards and database compare), `vc-ddev`,
+`vc-web-design`, `vc-tailwind`, `vc-solving`. For a TYPO3 upgrade, ask
+VC-Orchestrator to "upgrade this TYPO3 project to v<N>". It works one major
+version at a time and asks before snapshots, version changes, or removing data.
 
 **Commands:**
 
@@ -155,7 +159,7 @@ Resets Nov 2, 6:59 AM · 6d 23h
 
 ## How it changes your config
 
-- **Install** copies 24 files into `~/.config/opencode` (agents, skills,
+- **Install** copies 26 files into `~/.config/opencode` (agents, skills,
   commands, `plugins/ocdb-hw/`) and records their hashes in
   `.vc-ocdb/state.json`. It never overwrites files it doesn't own, and refuses
   to update files you've edited. The quota add-on is a symlink to
