@@ -136,3 +136,26 @@ test('updating an install from before the VC-Orchestrator rename removes the old
     assert.equal(after.assets['agents/vc-web.md'], undefined);
   } finally { await rm(dest, { recursive: true, force: true }); }
 });
+
+test('updating removes the folders of retired skills once they are empty', async () => {
+  const dest = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-skilldir-'));
+  try {
+    const cli = (...args) => spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), ...args, '--config-dir', dest], { cwd: repo, encoding: 'utf8' });
+    assert.equal(cli('install', '--apply').status, 0);
+    const { mkdir, rename, writeFile, readdir } = await import('node:fs/promises');
+    const { createHash } = await import('node:crypto');
+    // Recreate the layout from before the TYPO3 rename.
+    await mkdir(path.join(dest, 'skills/vc-typo3'));
+    await rename(path.join(dest, 'skills/vc-TYPO3/SKILL.md'), path.join(dest, 'skills/vc-typo3/SKILL.md'));
+    await rm(path.join(dest, 'skills/vc-TYPO3'), { recursive: true });
+    const ledger = JSON.parse(await readFile(path.join(dest, '.vc-ocdb/state.json'), 'utf8'));
+    delete ledger.assets['skills/vc-TYPO3/SKILL.md'];
+    ledger.assets['skills/vc-typo3/SKILL.md'] = createHash('sha256').update(await readFile(path.join(dest, 'skills/vc-typo3/SKILL.md'))).digest('hex');
+    await writeFile(path.join(dest, '.vc-ocdb/state.json'), JSON.stringify(ledger));
+    const update = cli('install', '--apply');
+    assert.equal(update.status, 0, update.stderr);
+    const skills = await readdir(path.join(dest, 'skills'));
+    assert.ok(skills.includes('vc-TYPO3'));
+    assert.ok(!skills.includes('vc-typo3'));
+  } finally { await rm(dest, { recursive: true, force: true }); }
+});
