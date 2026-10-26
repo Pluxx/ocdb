@@ -68,7 +68,7 @@ independent work:
 | --- | --- |
 | `VC-Explorer` | Cheap read-only code search; returns `path:line` locations |
 | `VC-Librarian` | Cheap documentation research with source links |
-| `VC-Design` | Visual direction, layout, UX |
+| `VC-Design` | Visual and motion design, layout, UX, WCAG 2.2 AA |
 | `VC-Frontend` | HTML, CSS, JS, Tailwind implementation |
 | `VC-Symfony` | PHP backend and its tests: Symfony, TYPO3 extensions and site packages |
 | `VC-DDEV` | DDEV environment diagnosis and fixes |
@@ -76,7 +76,9 @@ independent work:
 | `VC-Tester` | Running checks without editing |
 | `VC-Solver` | Expensive read-only analysis (see below) |
 
-Subagents start with no context. Give each one the objective, relevant evidence,
+For visual work, give `VC-Design` the audience, brand assets, and any references.
+Ask the user for references if there are none; a reference does more for design
+quality than any instruction. Subagents start with no context. Give each one the objective, relevant evidence,
 the files it may edit, and how success is checked. Never let two agents edit the
 same file at once; run design before the frontend work that depends on it.
 Subagents cannot delegate, so handle their blockers yourself.

@@ -99,7 +99,7 @@ To switch profile, run `deactivate`, then `setup` with the new profile.
 | `VC-Orchestrator` | Lead (Tab/default): handles small tasks itself, delegates the rest | `gpt-6.1-sol#high` | `minimax-m3#thinking` |
 | `VC-Explorer` | Cheap read-only code search returning `path:line` locations | `gpt-6-luna#low` | `gpt-6-luna#low` |
 | `VC-Librarian` | Cheap documentation research (TYPO3, Symfony, packages) with source links | `gpt-6-luna#low` | `gpt-6-luna#low` |
-| `VC-Design` | Visual direction, layout, UX | `gpt-6-luna#medium` | `kimi-k2.7-code` |
+| `VC-Design` | Visual and motion design, modern CSS effects, WCAG 2.2 AA | `gpt-6-sol#high` | `kimi-k2.7-code` |
 | `VC-Frontend` | HTML, CSS, JS, Tailwind | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
 | `VC-Symfony` | PHP backend and tests: Symfony, TYPO3 extensions/site packages/upgrades | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
 | `VC-DDEV` | DDEV diagnosis and fixes | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |

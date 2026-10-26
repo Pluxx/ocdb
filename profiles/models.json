@@ -7,7 +7,7 @@
       "provider": "openai",
       "lead": "openai/gpt-6.1-sol#high",
       "implementation": "openai/gpt-6-luna#high",
-      "design": "openai/gpt-6-luna#medium",
+      "design": "openai/gpt-6-sol#high",
       "explore": "openai/gpt-6-luna#low",
       "tester": "openai/gpt-6-luna#medium",
       "helper": "openai/gpt-6-luna#low",
