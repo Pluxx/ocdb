@@ -1,14 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, readdir, rm, writeFile, lstat, symlink } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { executeCommand, parseArgs } from '../lib/cli.mjs';
 
-const base = '/tmp/opencode';
+const base = os.tmpdir();
 await mkdir(base, { recursive: true });
 const fixtures = new Set();
-const agentIds = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer'];
+const agentIds = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer', 'VC-Librarian'];
 const skillIds = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving', 'vc-typo3', 'vc-typo3-upgrade'];
 const commandIds = ['vc-web', 'vc-plan', 'vc-check', 'vc-solve', 'vc-solve-max'];
 async function setup() {
@@ -20,7 +21,7 @@ async function setup() {
   const dest = path.join(root, 'config');
   for (const id of agentIds) {
     await mkdir(path.join(source, 'agents'), { recursive: true });
-    const model = id === 'VC-Orchestrator' ? 'openai/gpt-6.1-sol#high' : id === 'VC-Solver' ? 'openai/gpt-6-astra#high' : id === 'VC-Design' ? 'openai/gpt-6-luna#medium' : id === 'VC-Explorer' ? 'openai/gpt-6-luna#low' : id === 'VC-Tester' ? 'openai/gpt-6-luna#medium' : 'openai/gpt-6-luna#high';
+    const model = id === 'VC-Orchestrator' ? 'openai/gpt-6.1-sol#high' : id === 'VC-Solver' ? 'openai/gpt-6-astra#high' : id === 'VC-Design' ? 'openai/gpt-6-luna#medium' : ['VC-Explorer', 'VC-Librarian'].includes(id) ? 'openai/gpt-6-luna#low' : id === 'VC-Tester' ? 'openai/gpt-6-luna#medium' : 'openai/gpt-6-luna#high';
     const body = id === 'VC-Orchestrator' ? 'agent-v1\n' : `${id}\n`;
     await writeFile(path.join(source, 'agents', `${id}.md`), id === 'VC-Reviewer' ? `${body}` : `---\nmodel: ${model}\n---\n${body}`);
   }
@@ -104,7 +105,7 @@ test('all four supported profiles paint every routed role', async () => {
   for (const [id, [lead, implementation, design, explore, tester, helper, solver, solverMax]] of Object.entries(routes)) {
     await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: id, log: { log() {} } });
     const content = async (rel) => readFile(path.join(c.dest, rel), 'utf8');
-    for (const [relative, model] of [['agents/VC-Orchestrator.md', lead], ['agents/VC-Symfony.md', implementation], ['agents/VC-Design.md', design], ['agents/VC-Explorer.md', explore], ['agents/VC-Tester.md', tester], ['agents/VC-Solver.md', solver], ['commands/vc-solve-max.md', solverMax]]) {
+    for (const [relative, model] of [['agents/VC-Orchestrator.md', lead], ['agents/VC-Symfony.md', implementation], ['agents/VC-Design.md', design], ['agents/VC-Explorer.md', explore], ['agents/VC-Librarian.md', explore], ['agents/VC-Tester.md', tester], ['agents/VC-Solver.md', solver], ['commands/vc-solve-max.md', solverMax]]) {
       assert.ok((await content(relative)).includes(`model: ${model}`), `${id} ${relative} should use ${model}`);
     }
   }

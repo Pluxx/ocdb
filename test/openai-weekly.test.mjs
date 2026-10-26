@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { lstat, mkdir, mkdtemp, readlink, rm, symlink, writeFile } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { addonLink, addonState, installAddon, uninstallAddon } from '../lib/openai-weekly.mjs';
 import { parseArgs } from '../lib/cli.mjs';
@@ -10,7 +11,7 @@ const roots = new Set();
 test.after(async () => { for (const root of roots) await rm(root, { recursive: true, force: true }); });
 
 async function fixture() {
-  const root = await mkdtemp('/tmp/opencode/vc-ocdb-addon-');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-addon-'));
   roots.add(root);
   const addon = path.join(root, 'addon');
   await mkdir(addon, { recursive: true });

@@ -11,7 +11,8 @@
     "ocdb": "bin/vc-ocdb.mjs"
   },
   "scripts": {
-    "test": "node --test 'test/*.test.mjs' && npm --prefix addons/openai-weekly test"
+    "test": "node --test 'test/*.test.mjs' && npm --prefix addons/openai-weekly test",
+    "verify:opencode": "node scripts/verify-opencode.mjs"
   },
   "dependencies": {
     "jsonc-parser": "3.3.1"

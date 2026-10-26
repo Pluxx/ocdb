@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, mkdir, readFile, rm, rmdir, writeFile, lstat } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { parse } from 'jsonc-parser';
@@ -8,7 +9,7 @@ import { executeCommand } from '../lib/cli.mjs';
 
 const roots = new Set();
 async function setup() {
-  const root = await mkdtemp('/tmp/opencode/vc-ocdb-activation-');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-activation-'));
   roots.add(root);
   const dest = path.join(root, 'opencode');
   await mkdir(dest, { recursive: true });

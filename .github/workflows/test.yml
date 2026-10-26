@@ -1,0 +1,35 @@
+name: test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            addons/openai-weekly/package-lock.json
+      # `setup` refuses to run without OpenCode V2; the unit tests only need its version check.
+      # The real-OpenCode check is `npm run verify:opencode`, run locally.
+      - name: Stand-in opencode binary
+        run: |
+          mkdir -p "$HOME/.local/bin"
+          printf '#!/bin/sh\necho "opencode v2.1.4"\n' > "$HOME/.local/bin/opencode"
+          chmod +x "$HOME/.local/bin/opencode"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+      - run: npm ci
+      - run: npm ci
+        working-directory: addons/openai-weekly
+      - run: npm test
+      - run: npm run typecheck
+        working-directory: addons/openai-weekly

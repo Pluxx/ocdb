@@ -1,12 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import { mkdtemp, readFile, rm, readdir } from 'node:fs/promises';
+import os from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 
 const repo = path.resolve('.');
 const profile = path.join(repo, 'profiles/web');
-const agents = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer'];
+const agents = ['VC-Orchestrator', 'VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer', 'VC-Librarian'];
 const skills = ['vc-symfony', 'vc-ddev', 'vc-web-design', 'vc-tailwind', 'vc-solving', 'vc-typo3', 'vc-typo3-upgrade'];
 const commands = ['vc-web', 'vc-plan', 'vc-check', 'vc-solve', 'vc-solve-max'];
 
@@ -29,20 +30,20 @@ function frontmatter(source) {
   return match[1];
 }
 
-test('assembled profile has exactly the 21 expected allowlisted Markdown assets and installs through CLI', async () => {
+test('assembled profile has exactly the 22 expected allowlisted Markdown assets and installs through CLI', async () => {
   const expected = [
     ...agents.map((id) => `agents/${id}.md`),
     ...skills.map((id) => `skills/${id}/SKILL.md`),
     ...commands.map((id) => `commands/${id}.md`),
   ].sort();
   assert.deepEqual((await markdownFiles(profile)).sort(), expected);
-  const temp = await mkdtemp('/tmp/opencode/vc-ocdb-profile-');
+  const temp = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-profile-'));
   try {
     const destination = path.join(temp, 'config');
     const proc = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'install', '--apply', '--config-dir', destination], { cwd: repo, encoding: 'utf8' });
     assert.equal(proc.status, 0, proc.stderr);
     const state = JSON.parse(await readFile(path.join(destination, '.vc-ocdb/state.json'), 'utf8'));
-    assert.equal(Object.keys(state.assets).length, 26);
+    assert.equal(Object.keys(state.assets).length, 27);
     assert.deepEqual(Object.keys(state.assets).filter((rel) => !rel.startsWith('plugins/')).sort(), expected);
     assert.deepEqual(Object.keys(state.assets).filter((rel) => rel.startsWith('plugins/')).sort(), ['plugins/ocdb-hw/activity.mjs', 'plugins/ocdb-hw/index.ts', 'plugins/ocdb-hw/metrics.mjs', 'plugins/ocdb-hw/package.json', 'plugins/ocdb-hw/tui.tsx']);
   } finally { await rm(temp, { recursive: true, force: true }); }
@@ -59,7 +60,7 @@ test('solver routing and OpenCode command policy remain explicit and bounded', a
   assert.equal(solverRules.length, 1, 'lead must declare one specific solver permission');
   assert.match(solverRules[0], /^    effect: ask$/m, 'solver must be ask, never allow');
 
-  for (const id of ['VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer']) {
+  for (const id of ['VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer', 'VC-Librarian']) {
     const body = frontmatter(await text(`agents/${id}.md`));
     assert.match(body, /^mode: subagent$/m, `${id} must be a specialist subagent`);
     assert.match(body, /^  - action: subagent\n    resource: ["']?\*["']?\n    effect: deny$/m, `${id} must deny onward delegation`);
@@ -80,7 +81,7 @@ test('solver routing and OpenCode command policy remain explicit and bounded', a
 });
 
 test('non-TTY setup selects only declared providers and prefers OpenAI only when declared', async () => {
-  const root = await mkdtemp('/tmp/opencode/vc-ocdb-selection-');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-selection-'));
   try {
     const openaiDest = path.join(root, 'openai');
     const openai = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'setup', '--providers', 'openai,opencode-go', '--apply', '--config-dir', openaiDest], { cwd: repo, encoding: 'utf8' });
@@ -105,7 +106,7 @@ test('non-TTY setup selects only declared providers and prefers OpenAI only when
 });
 
 test('--profile without --providers selects that profile through the public CLI', async () => {
-  const dest = await mkdtemp('/tmp/opencode/vc-ocdb-profile-only-');
+  const dest = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-profile-only-'));
   try {
     const proc = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'setup', '--profile', 'opencode-go', '--dry-run', '--config-dir', dest], { cwd: repo, encoding: 'utf8' });
     assert.equal(proc.status, 0, proc.stderr);
@@ -114,7 +115,7 @@ test('--profile without --providers selects that profile through the public CLI'
 });
 
 test('updating an install from before the VC-Orchestrator rename removes the old vc-web agent', async () => {
-  const dest = await mkdtemp('/tmp/opencode/vc-ocdb-rename-');
+  const dest = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-rename-'));
   try {
     const cli = (...args) => spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), ...args, '--config-dir', dest], { cwd: repo, encoding: 'utf8' });
     assert.equal(cli('install', '--apply').status, 0);

@@ -98,6 +98,7 @@ To switch profile, run `deactivate`, then `setup` with the new profile.
 | --- | --- | --- | --- |
 | `VC-Orchestrator` | Lead (Tab/default): handles small tasks itself, delegates the rest | `gpt-6.1-sol#high` | `minimax-m3#thinking` |
 | `VC-Explorer` | Cheap read-only code search returning `path:line` locations | `gpt-6-luna#low` | `gpt-6-luna#low` |
+| `VC-Librarian` | Cheap documentation research (TYPO3, Symfony, packages) with source links | `gpt-6-luna#low` | `gpt-6-luna#low` |
 | `VC-Design` | Visual direction, layout, UX | `gpt-6-luna#medium` | `kimi-k2.7-code` |
 | `VC-Frontend` | HTML, CSS, JS, Tailwind | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
 | `VC-Symfony` | PHP backend and tests: Symfony, TYPO3 extensions/site packages/upgrades | `gpt-6-luna#high` | `deepseek-v4.1-flash#high` |
@@ -159,7 +160,7 @@ Resets Nov 2, 6:59 AM · 6d 23h
 
 ## How it changes your config
 
-- **Install** copies 26 files into `~/.config/opencode` (agents, skills,
+- **Install** copies 27 files into `~/.config/opencode` (agents, skills,
   commands, `plugins/ocdb-hw/`) and records their hashes in
   `.vc-ocdb/state.json`. It never overwrites files it doesn't own, and refuses
   to update files you've edited. The quota add-on is a symlink to
@@ -190,9 +191,16 @@ catalogs and variants change; check `/models` in OpenCode.
 ## Development
 
 ```sh
-npm ci && npm test      # OCDB tests plus the quota add-on's tests
+npm ci && npm test              # OCDB tests plus the quota add-on's tests (also run by CI on every push)
+npm run verify:opencode         # install into a throwaway config and check real OpenCode loads it all
+npm run verify:opencode -- --profile opencode-go
 ocdb setup --profile openai --activate --dry-run --config-dir /tmp/ocdb-preview/opencode
 ```
+
+`verify:opencode` starts a private `opencode serve` against a temporary config.
+It doesn't touch your live service. It checks every agent and its routed model,
+the default agent, skills, commands, plugins, and (if the add-on's dependencies
+are installed) the quota RPC. Run it after changing assets or updating OpenCode.
 
 `--config-dir` is the exact OpenCode config directory to use. Agent, skill and
 command sources are in `profiles/web/`; the installer writes each profile's
