@@ -54,5 +54,5 @@ test('install refuses foreign paths and uninstall leaves them alone', async () =
 test('quota flags are limited to setup/install and --codex-quota needs --openai-quota', () => {
   assert.equal(parseArgs(['setup', '--profile', 'openai', '--openai-quota', '--codex-quota']).codexQuota, true);
   assert.throws(() => parseArgs(['setup', '--codex-quota']), /requires --openai-quota/);
-  assert.throws(() => parseArgs(['activate', '--openai-quota']), /only by setup and install/);
+  assert.throws(() => parseArgs(['activate', '--openai-quota']), /does not accept --openai-quota/);
 });

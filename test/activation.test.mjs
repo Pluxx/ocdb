@@ -82,7 +82,7 @@ test('activation ledger rejects forged profile and traversal backup paths', asyn
   await writeFile(ledgerFile, JSON.stringify(ledger));
   await assert.rejects(command('deactivate', c), /unsupported format/);
   ledger.profile = 'openai';
-  ledger.backupPath = '../opencode.jsonc';
+  ledger.files[0].backup = '../opencode.jsonc';
   await writeFile(ledgerFile, JSON.stringify(ledger));
   await assert.rejects(command('deactivate', c), /unsafe backup path/);
 });
@@ -95,7 +95,7 @@ test('failed activation commit restores core bytes and releases lock while repor
   await assert.rejects(command('install', c, {
     activate: true,
     onActivationMutation: async () => { throw new Error('injected activation failure'); },
-  }), /assets installed, but activation did not complete: activation commit failed; config rollback succeeded and pending record cleared: injected activation failure/);
+  }), /assets installed, but activation did not complete: activation failed; config restored: injected activation failure/);
   assert.deepEqual(await readFile(core), original);
   await assert.rejects(lstat(path.join(c.dest, '.vc-ocdb/lock')), { code: 'ENOENT' });
   await assert.rejects(lstat(path.join(c.dest, '.vc-ocdb/activation.json')), { code: 'ENOENT' });
@@ -127,7 +127,7 @@ test('conflicting legacy provider definition is not silently shadowed or convert
   await assert.rejects(lstat(path.join(c.dest, '.vc-ocdb/state.json')), { code: 'ENOENT' });
 });
 
-test('failed rollback keeps pending baseline authoritative and permits safe later recovery', async () => {
+test('a failed rollback keeps the ledger and backup so deactivate can recover later', async () => {
   const c = await setup();
   const core = path.join(c.dest, 'opencode.jsonc');
   const original = Buffer.from('{\n  // true original baseline\n  "theme": "baseline"\n}\n');
@@ -141,16 +141,15 @@ test('failed rollback keeps pending baseline authoritative and permits safe late
       await mkdir(core);
       throw new Error('fault after core write');
     },
-  }), /recovery required:.*pending record and original backup retained/);
+  }), /could not be rolled back.*run deactivate to recover/);
   await assert.rejects(lstat(path.join(c.dest, '.vc-ocdb/lock')), { code: 'ENOENT' });
-  const pending = JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/activation.json'), 'utf8'));
-  assert.equal(pending.phase, 'pending');
-  assert.deepEqual(await readFile(path.join(c.dest, pending.backupPath)), original);
+  const ledger = JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/activation.json'), 'utf8'));
+  assert.deepEqual(await readFile(path.join(c.dest, ledger.files[0].backup)), original);
   const status = [];
   await executeCommand('status', { configDir: c.dest, log: { log(message) { status.push(message); } } });
-  assert.match(status[0], /PENDING RECOVERY/);
-  await assert.rejects(command('activate', c), /activation recovery is pending/);
-  await assert.rejects(command('uninstall', c), /activation recovery is pending/);
+  assert.match(status[0], /activation: active openai/);
+  await assert.rejects(command('activate', c), /regular file/);
+  await assert.rejects(command('uninstall', c), /deactivate first/);
 
   await rmdir(core);
   await writeFile(core, activatedBytes);
@@ -259,4 +258,25 @@ test('activation routes title/summary helpers to the profile helper model withou
   assert.deepEqual(config.agent, { explore: { disable: true } });
   await command('deactivate', c);
   assert.deepEqual(await readFile(core), original);
+});
+
+test('deactivation still understands the version 1 activation ledger written by earlier releases', async () => {
+  const c = await setup();
+  const core = path.join(c.dest, 'opencode.json');
+  const tui = path.join(c.dest, 'tui.json');
+  const originalCore = Buffer.from('{ "plugin": ["oh-my-opencode-slim"], "lsp": true }\n');
+  const originalTui = Buffer.from('{ "plugin": ["oh-my-opencode-slim"] }\n');
+  await writeFile(core, originalCore);
+  await writeFile(tui, originalTui);
+  await command('install', c, { activate: true, disableOmo: true });
+  const ledgerFile = path.join(c.dest, '.vc-ocdb/activation.json');
+  const { profile, files: [coreEntry, tuiEntry] } = JSON.parse(await readFile(ledgerFile, 'utf8'));
+  await writeFile(ledgerFile, JSON.stringify({
+    version: 1, phase: 'active', coreFile: coreEntry.file, profile, disableOmo: true, originalExists: true,
+    backupPath: coreEntry.backup, originalHash: coreEntry.original, activatedHash: coreEntry.activated,
+    tui: { file: tuiEntry.file, backupPath: tuiEntry.backup, originalHash: tuiEntry.original, activatedHash: tuiEntry.activated },
+  }));
+  await command('deactivate', c);
+  assert.deepEqual(await readFile(core), originalCore);
+  assert.deepEqual(await readFile(tui), originalTui);
 });
