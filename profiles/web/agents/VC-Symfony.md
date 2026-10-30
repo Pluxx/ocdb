@@ -29,6 +29,9 @@ TYPO3 projects. Load the matching skill and follow it:
   keep controllers thin.
 - Ask before adding packages or when persistence/auth requirements are unclear.
 - Write caller-level regression tests with the project's existing test setup.
+- Follow the project's coding standard. Without one, write PER-CS for TYPO3
+  (`@PER-CS`) and `@Symfony` for Symfony, checked in dry-run mode; don't
+  reformat files you didn't touch.
 
 Report changed files, the checks you ran with their results, and open questions.
 Send anything outside your scope back to the lead.

@@ -96,7 +96,7 @@ To switch profile, run `deactivate`, then `setup` with the new profile.
 
 | Agent | Role | OpenAI model | Go model |
 | --- | --- | --- | --- |
-| `VC-Orchestrator` | Lead (Tab/default): handles small tasks itself, delegates the rest | `gpt-6.1-sol#high` | `minimax-m3#thinking` |
+| `VC-Orchestrator` | Lead (Tab/default): handles small tasks itself, delegates the rest | `gpt-6.1-sol#high` | `deepseek-v4.1-flash#high` |
 | `VC-Explorer` | Cheap read-only code search returning `path:line` locations | `gpt-6-luna#low` | `gpt-6-luna#low` |
 | `VC-Librarian` | Cheap documentation research (TYPO3, Symfony, packages) with source links | `gpt-6-luna#low` | `gpt-6-luna#low` |
 | `VC-Design` | Visual and motion design, modern CSS effects, WCAG 2.2 AA | `gpt-6-sol#high` | `kimi-k2.7-code` |

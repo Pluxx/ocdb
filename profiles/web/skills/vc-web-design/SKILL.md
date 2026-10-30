@@ -68,15 +68,10 @@ Check the design against these before calling it done:
 | Shadows and borders on every box | Separation through space and tone first, then borders/shadows only where they add meaning |
 | Random animations on scroll | A few choreographed moments that support the content |
 
-**Details that make it look finished:**
-
-- Optical alignment.
-- Consistent icon stroke width.
-- Hairline borders with alpha.
-- Subtle background texture or gradient meshes, used sparingly.
-- Image treatment: consistent aspect ratios and art direction.
-- Hover states that feel physical.
-- Empty, loading, and error states designed rather than left as defaults.
+**Details that make it look finished:** optical alignment, consistent icon
+stroke width, hairline borders with alpha, sparing background texture or
+gradient meshes, consistent image aspect ratios and art direction, hover states
+that feel physical, and designed (not default) empty, loading, and error states.
 
 ## 5. Modern CSS: use it, with fallbacks
 
@@ -97,12 +92,10 @@ Check browser support against the project's target, and gate newer features with
 - **Scroll-driven animations:** `animation-timeline: view()` / `scroll()` for
   reveal and progress effects, with no JS scroll listeners. Wrap them in
   `@supports (animation-timeline: view())`.
-- **Effects:**
-  - `backdrop-filter` (glass, used sparingly, with an opaque fallback).
-  - `mask-image` gradients for fades.
-  - `@property` to animate gradients and custom properties.
-  - `color-mix()` for state colors.
-  - `linear()` easing for spring-like curves without JS.
+- **Effects:** `backdrop-filter` (glass, sparingly, with an opaque fallback),
+  `mask-image` gradients for fades, `@property` to animate gradients and custom
+  properties, `color-mix()` for state colors, and `linear()` easing for
+  spring-like curves without JS.
 - **Tailwind v4:** tokens live in `@theme`. Use the `motion-safe:`,
   `motion-reduce:`, and `starting:` variants, and `@container` utilities. Load
   `vc-tailwind`.
@@ -169,15 +162,9 @@ Design and verify against these. Don't hand over a design that fails one.
 
 ## Hand-off
 
-When `VC-Frontend` builds on your work, give it:
-
-- The direction from section 2.
-- The token file.
-- The layout per breakpoint.
-- The component states.
-- The motion spec: which element, what property, duration, easing, trigger, and
-  reduced-motion behavior.
-
+When `VC-Frontend` builds on your work, give it the direction (section 2), the
+token file, the layout per breakpoint, the component states, and the motion
+spec (element, property, duration, easing, trigger, reduced-motion behavior).
 Say clearly which files each of you owns.
 
 ## References

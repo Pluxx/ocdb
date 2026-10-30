@@ -17,7 +17,7 @@
     "opencode-go": {
       "label": "OpenCode Go",
       "provider": "opencode-go",
-      "lead": "opencode-go/minimax-m3#thinking",
+      "lead": "opencode-go/deepseek-v4.1-flash#high",
       "implementation": "opencode-go/deepseek-v4.1-flash#high",
       "design": "opencode-go/kimi-k2.7-code",
       "explore": "opencode-go/gpt-6-luna#low",

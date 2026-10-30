@@ -35,6 +35,27 @@ description: Use for PHP and Symfony implementation or diagnosis; discovers inst
 - Preserve existing validation errors, response formats, status codes, and
   access checks.
 
+## Privacy (GDPR/DSGVO)
+
+Every bundle, controller, and template change must comply with GDPR/DSGVO and
+TDDDG:
+
+- **No third-party requests before consent.** Serve fonts, CSS, and JS from the
+  app (no Google Fonts or CDNs): AssetMapper packages downloaded into
+  `assets/vendor/`, not CDN URLs; Encore/Vite bundles. Embeds, analytics, and
+  marketing scripts load only after opt-in through the project's consent
+  manager.
+- **Third-party bundles and packages:** before adding one, check for external
+  calls, non-essential cookies, or tracking, and report what you found.
+- **Personal data:** collect only what the purpose needs, and state the purpose
+  at the form. Keep personal data and full IPs out of logs (redact with Monolog
+  processors). Plan retention or deletion and restrict access with Security
+  voters.
+- Only essential cookies (session, CSRF) without consent; no data to non-EU
+  services without the user's explicit approval.
+- Flag legal decisions (legal basis, data processing agreement, privacy policy
+  text) instead of making them.
+
 ## Persistence
 
 Follow whatever persistence is installed. With Doctrine migrations, generate the

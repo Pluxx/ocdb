@@ -10,10 +10,10 @@ description: Use for TYPO3 extensions, site packages, TCA, TypoScript, Fluid, an
 1. Read `composer.lock` for the installed `typo3/cms-core` version, and the PHP
    version in use (`ddev php -v`, or `composer.json` `config.platform`). Every API
    choice below depends on this major version.
-2. Look up anything you're unsure of in the docs for **that** version
-   (docs.typo3.org, using the version switcher). TYPO3 changes registration
-   APIs often between majors, so code from a blog post or an older project is
-   often wrong for this one.
+2. Check every API, TCA option, TypoScript path, and registration call against
+   the official docs for **that** major (docs.typo3.org, version switcher)
+   before writing it. These change often between majors, so memory, blog
+   posts, and older projects are often wrong.
 3. Check whether `helhum/typo3-console` is installed. Some commands, such as
    `database:updateschema`, come from it, not from the core.
 4. If the project uses DDEV, load `vc-ddev` and run everything through it, e.g.
@@ -66,6 +66,27 @@ Follow whatever structure the existing extensions in the project already use.
   concatenating strings. Check backend user permissions in modules, and validate
   input in Extbase actions.
 
+## Privacy (GDPR/DSGVO)
+
+Every extension, plugin, and site package change must comply with GDPR/DSGVO
+and TDDDG:
+
+- **No third-party requests before consent.** Self-host fonts, CSS, JS, and
+  icons in `Resources/Public/` (no Google Fonts or CDNs), included via the site
+  package or `AssetCollector`. Embeds (YouTube, Vimeo, maps), analytics, and
+  marketing scripts load only after opt-in through the project's consent
+  manager (e.g. a two-click placeholder).
+- **Third-party extensions:** before adding one, check for external resources,
+  non-essential cookies, or outbound data, and report what you found.
+- **Personal data in plugins and forms:** collect only what the purpose needs;
+  state the purpose and link the privacy policy at the form. Keep personal data
+  and full IPs out of logs (use TYPO3's IP anonymization). Plan retention or
+  deletion (e.g. a scheduler task) and restrict access with backend permissions.
+- Only essential cookies without consent; no data to non-EU services without
+  the user's explicit approval.
+- Flag legal decisions (legal basis, data processing agreement, privacy policy
+  text) instead of making them.
+
 ## Site package
 
 A site package is the project's own extension holding its frontend: templates,
@@ -100,8 +121,10 @@ such as dropping or renaming fields and tables, without the user's consent.
 
 - Use `typo3/testing-framework` for unit and functional tests if it's installed.
   Functional tests need a database; use the project's existing setup.
-- Run the project's static analysis and coding standard (PHPStan, PHP-CS-Fixer
-  with the TYPO3 rules) in check mode.
+- Write PHP to PER-CS, which TYPO3's coding guidelines and
+  `typo3/coding-standards` follow. Run PHPStan and PHP-CS-Fixer in
+  check/dry-run mode with the project's config, or `@PER-CS` if it has none.
+  Don't reformat files you didn't touch.
 - Check the frontend and backend in the browser only if you actually can; say
   so if you didn't.
 

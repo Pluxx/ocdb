@@ -39,7 +39,7 @@ async function setup() {
   const catalog = { version: 1, preferenceOrder: ['openai', 'opencode-go', 'opencode-zen', 'deepseek'], profiles: {} };
   const modelRows = {
     openai: ['openai/gpt-6.1-sol#high', 'openai/gpt-6-luna#high', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-astra#high', 'openai/gpt-6-astra#max'],
-    'opencode-go': ['opencode-go/minimax-m3#thinking', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
+    'opencode-go': ['opencode-go/deepseek-v4.1-flash#high', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
     'opencode-zen': ['opencode/gpt-6.1-sol#high', 'opencode/gpt-6-luna#high', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-astra#high', 'opencode/gpt-6-astra#max'],
     deepseek: ['ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-v4-pro#high', 'ocdb-deepseek/deepseek-v4-pro#max'],
   };
@@ -72,7 +72,7 @@ test('profile selection repaints only assigned roles, max command variant, and p
   const c = await setup();
   await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: 'opencode-go', log: { log() {} } });
   const installed = (rel) => readFile(path.join(c.dest, rel), 'utf8');
-  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/minimax-m3#thinking$/m);
+  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
   assert.match(await installed('agents/VC-Symfony.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
   assert.match(await installed('agents/VC-Design.md'), /^model: opencode-go\/kimi-k2\.7-code$/m);
   assert.match(await installed('agents/VC-Solver.md'), /^model: opencode-go\/qwen3\.8-max#medium$/m);
@@ -81,7 +81,7 @@ test('profile selection repaints only assigned roles, max command variant, and p
   assert.doesNotMatch(await installed('agents/VC-Reviewer.md'), /^model:/m);
   assert.equal(JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/state.json'), 'utf8')).profile, 'opencode-go');
   await run('install', c);
-  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/minimax-m3#thinking$/m);
+  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
 });
 
 test('direct DeepSeek profile renders every routed role inside its custom provider', async () => {
@@ -98,7 +98,7 @@ test('all four supported profiles paint every routed role', async () => {
   const c = await setup();
   const routes = {
     openai: ['openai/gpt-6.1-sol#high', 'openai/gpt-6-luna#high', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-astra#high', 'openai/gpt-6-astra#max'],
-    'opencode-go': ['opencode-go/minimax-m3#thinking', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
+    'opencode-go': ['opencode-go/deepseek-v4.1-flash#high', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
     'opencode-zen': ['opencode/gpt-6.1-sol#high', 'opencode/gpt-6-luna#high', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-astra#high', 'opencode/gpt-6-astra#max'],
     deepseek: ['ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-v4-pro#high', 'ocdb-deepseek/deepseek-v4-pro#max'],
   };

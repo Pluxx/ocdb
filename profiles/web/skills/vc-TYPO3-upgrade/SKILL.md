@@ -14,12 +14,10 @@ time** (e.g. 12 → 13, then 13 → 14), even if the target is several versions 
 - Record the starting point: the `typo3/cms-core` version and PHP version (from
   `composer.lock`), and all extensions with their versions (`composer show`,
   filtered to TYPO3 extensions).
-- Make sure work can be rolled back:
-  - The working tree must be clean in git, on its own branch, with one commit
-    per step.
-  - Take a database snapshot, after asking the user: `ddev snapshot --name
-    pre-typo3-<target>` in DDEV projects.
-  - Never import, reset, or drop data without explicit consent.
+- Make it reversible: a clean git tree on its own branch, one commit per step,
+  and a database snapshot after asking the user (`ddev snapshot --name
+  pre-typo3-<target>` in DDEV projects). Never import, reset, or drop data
+  without explicit consent.
 - Get on the **latest patch release of the current major** first, and get it
   working there.
 - Fix the deprecations the current version already logs. Enable the deprecation
@@ -100,11 +98,7 @@ ddev exec vendor/bin/typo3 cache:flush
 
 ## Report
 
-For each major step, report:
-
-- Versions before and after.
-- Extensions updated, replaced, or blocked.
-- What Rector and Fractor changed, and what was fixed by hand.
-- Database changes applied and those still awaiting consent.
-- The checks you ran, with results.
-- What wasn't verified.
+For each major step, report: versions before and after; extensions updated,
+replaced, or blocked; what Rector and Fractor changed and what was fixed by
+hand; database changes applied and those awaiting consent; the checks you ran,
+with results; and what wasn't verified.

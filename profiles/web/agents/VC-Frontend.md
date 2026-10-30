@@ -24,6 +24,10 @@ Stimulus, AssetMapper, Encore, or Vite. Enhance server-rendered pages instead of
 turning them into an SPA. Use complete, literal Tailwind class names, never built
 from string fragments.
 
+Keep frontend loading GDPR/DSGVO compliant: self-host fonts, libraries, and
+icons (no Google Fonts, no CDNs), and load embeds, analytics, and other
+third-party scripts only after opt-in through the project's consent manager.
+
 Implement VC-Design's tokens and motion spec exactly, without simplifying them
 into generic defaults. For motion and modern CSS (View Transitions,
 `@starting-style`, scroll-driven animations, container queries), follow
