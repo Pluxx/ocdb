@@ -1,7 +1,6 @@
 ---
 description: Explicitly opt into one read-only higher-effort solver analysis for the selected profile
-agent: VC-Solver
-model: openai/gpt-6-astra#max
+agent: VC-Solver-Max
 subagent: true
 ---
 

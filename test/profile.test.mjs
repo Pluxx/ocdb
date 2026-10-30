@@ -43,22 +43,23 @@ test('assembled profile has exactly the 23 expected allowlisted Markdown assets 
     const proc = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'install', '--apply', '--config-dir', destination], { cwd: repo, encoding: 'utf8' });
     assert.equal(proc.status, 0, proc.stderr);
     const state = JSON.parse(await readFile(path.join(destination, '.vc-ocdb/state.json'), 'utf8'));
-    assert.equal(Object.keys(state.assets).length, 28);
-    assert.deepEqual(Object.keys(state.assets).filter((rel) => !rel.startsWith('plugins/')).sort(), expected);
-    assert.deepEqual(Object.keys(state.assets).filter((rel) => rel.startsWith('plugins/')).sort(), ['plugins/ocdb-hw/activity.mjs', 'plugins/ocdb-hw/index.ts', 'plugins/ocdb-hw/metrics.mjs', 'plugins/ocdb-hw/package.json', 'plugins/ocdb-hw/tui.tsx']);
+    assert.equal(Object.keys(state.assets).length, 32);
+    // VC-Solver-Max is derived from VC-Solver at install time.
+    assert.deepEqual(Object.keys(state.assets).filter((rel) => !rel.startsWith('plugins/')).sort(), [...expected, 'agents/VC-Solver-Max.md'].sort());
+    assert.deepEqual(Object.keys(state.assets).filter((rel) => rel.startsWith('plugins/')).sort(), ['activity.mjs', 'catalog.json', 'index.ts', 'metrics.mjs', 'package.json', 'profiles.mjs', 'rpc.ts', 'tui.tsx'].map((file) => `plugins/ocdb-hw/${file}`));
   } finally { await rm(temp, { recursive: true, force: true }); }
 });
 
 test('solver routing and OpenCode command policy remain explicit and bounded', async () => {
   const solver = frontmatter(await text('agents/VC-Solver.md'));
-  assert.match(solver, /^model: openai\/gpt-6-astra#high$/m);
   assert.match(solver, /^steps: 10$/m);
-  assert.doesNotMatch(solver, /^model: openai\/gpt-6-astra#(?:max|low)$/m);
 
   const lead = frontmatter(await text('agents/VC-Orchestrator.md'));
-  const solverRules = lead.split(/(?=^  - action: subagent\n)/m).filter((rule) => /^  - action: subagent\n    resource: VC-Solver$/m.test(rule));
-  assert.equal(solverRules.length, 1, 'lead must declare one specific solver permission');
-  assert.match(solverRules[0], /^    effect: ask$/m, 'solver must be ask, never allow');
+  for (const id of ['VC-Solver', 'VC-Solver-Max']) {
+    const rules = lead.split(/(?=^  - action: subagent\n)/m).filter((rule) => new RegExp(`^  - action: subagent\\n    resource: ${id}$`, 'm').test(rule));
+    assert.equal(rules.length, 1, `lead must declare one specific ${id} permission`);
+    assert.match(rules[0], /^    effect: ask$/m, `${id} must be ask, never allow`);
+  }
 
   for (const id of ['VC-Symfony', 'VC-DDEV', 'VC-Design', 'VC-Frontend', 'VC-Reviewer', 'VC-Tester', 'VC-Solver', 'VC-Explorer', 'VC-Librarian']) {
     const body = frontmatter(await text(`agents/${id}.md`));
@@ -70,32 +71,30 @@ test('solver routing and OpenCode command policy remain explicit and bounded', a
   const maxCommand = frontmatter(await text('commands/vc-solve-max.md'));
   assert.match(regularCommand, /^agent: VC-Solver$/m);
   assert.doesNotMatch(regularCommand, /^model:/m, 'vc-solve inherits the solver high route');
-  assert.match(maxCommand, /^agent: VC-Solver$/m);
-  assert.match(maxCommand, /^model: openai\/gpt-6-astra#max$/m, 'explicit max command overrides the route');
+  assert.match(maxCommand, /^agent: VC-Solver-Max$/m);
+  assert.doesNotMatch(maxCommand, /^model:/m, 'the plugin routes VC-Solver-Max to the solverMax model');
 
   for (const relative of [...agents.map((id) => `agents/${id}.md`), ...commands.map((id) => `commands/${id}.md`)]) {
     const source = await text(relative);
     assert.doesNotMatch(frontmatter(source), /^(?:temperature|top_p|max_tokens|maxSteps|tools):/m, `${relative} contains unsupported V1-style fields`);
+    assert.doesNotMatch(frontmatter(source), /^model:/m, `${relative} must leave model routing to the profile catalog`);
     assert.doesNotMatch(source, /^!\s*`[^`]+`/m, `${relative} contains a shell-interpolation command block`);
   }
 });
 
-test('non-TTY setup selects only declared providers and prefers OpenAI only when declared', async () => {
+test('non-TTY setup picks the preferred profile the declared providers can run', async () => {
   const root = await mkdtemp(path.join(os.tmpdir(), 'vc-ocdb-selection-'));
   try {
     const openaiDest = path.join(root, 'openai');
     const openai = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'setup', '--providers', 'openai,opencode-go', '--apply', '--config-dir', openaiDest], { cwd: repo, encoding: 'utf8' });
     assert.equal(openai.status, 0, openai.stderr);
-    assert.equal(JSON.parse(await readFile(path.join(openaiDest, '.vc-ocdb/state.json'), 'utf8')).profile, 'openai');
-    assert.match(await readFile(path.join(openaiDest, 'agents/VC-Solver.md'), 'utf8'), /^model: openai\/gpt-6-astra#high$/m);
+    assert.equal(JSON.parse(await readFile(path.join(openaiDest, '.vc-ocdb/state.json'), 'utf8')).profile, 'oai-ocgo-mix');
+    assert.equal(JSON.parse(await readFile(path.join(openaiDest, 'plugins/ocdb-hw/catalog.json'), 'utf8')).installed, 'oai-ocgo-mix');
 
     const goDest = path.join(root, 'go');
     const go = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'setup', '--providers', 'opencode-go', '--apply', '--config-dir', goDest], { cwd: repo, encoding: 'utf8' });
     assert.equal(go.status, 0, go.stderr);
-    assert.equal(JSON.parse(await readFile(path.join(goDest, '.vc-ocdb/state.json'), 'utf8')).profile, 'opencode-go');
-    const goSolver = await readFile(path.join(goDest, 'agents/VC-Solver.md'), 'utf8');
-    assert.match(goSolver, /^model: opencode-go\/qwen3\.8-max#medium$/m);
-    assert.doesNotMatch(goSolver, /openai\/gpt-6-astra|openai\/gpt-6\.1-sol/);
+    assert.equal(JSON.parse(await readFile(path.join(goDest, '.vc-ocdb/state.json'), 'utf8')).profile, 'ocgo-hq');
 
     const noSelection = path.join(root, 'no-selection');
     const rejected = spawnSync(process.execPath, [path.join(repo, 'bin/vc-ocdb.mjs'), 'setup', '--config-dir', noSelection], { cwd: repo, encoding: 'utf8' });

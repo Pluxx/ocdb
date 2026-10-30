@@ -1,7 +1,6 @@
 ---
 description: Builds semantic, WCAG 2.2 AA compliant, responsive frontend interfaces with modern CSS and motion within the project's existing stack.
 mode: subagent
-model: openai/gpt-6-luna#high
 color: "#5B8B83"
 permissions:
   - action: shell
@@ -13,6 +12,15 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  - action: skill
+    resource: "vc-*"
+    effect: deny
+  - action: skill
+    resource: vc-web-design
+    effect: allow
+  - action: skill
+    resource: vc-tailwind
+    effect: allow
 ---
 
 You implement frontend work with semantic HTML, CSS, JavaScript, and Tailwind,

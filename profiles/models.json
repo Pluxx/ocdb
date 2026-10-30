@@ -1,52 +1,117 @@
 {
-  "version": 1,
-  "preferenceOrder": ["openai", "opencode-go", "opencode-zen", "deepseek"],
+  "version": 2,
+  "providers": {
+    "openai": {"label": "OpenAI (ChatGPT/Codex subscription)"},
+    "opencode-go": {"label": "OpenCode Go"},
+    "opencode": {"label": "OpenCode Zen"},
+    "ocdb-deepseek": {"label": "DeepSeek API key"}
+  },
+  "preferenceOrder": ["oai-ocgo-mix", "oai-hq", "ocgo-hq", "opencode-zen", "deepseek", "oai-lc", "ocgo-lc"],
+  "legacyProfiles": {
+    "openai": "oai-hq",
+    "opencode-go": "ocgo-lc"
+  },
   "profiles": {
-    "openai": {
-      "label": "OpenAI",
-      "provider": "openai",
+    "oai-hq": {
+      "label": "OAI-HQ",
+      "description": "OpenAI: Sol 6.1 leads and reviews, Terra 6.1 implements, Astra solves",
+      "requires": ["openai"],
       "lead": "openai/gpt-6.1-sol#high",
-      "implementation": "openai/gpt-6-luna#high",
-      "design": "openai/gpt-6-sol#high",
+      "implementation": "openai/gpt-6.1-terra#xhigh",
+      "design": "openai/gpt-6.1-sol#high",
       "explore": "openai/gpt-6-luna#low",
       "tester": "openai/gpt-6-luna#medium",
+      "review": "openai/gpt-6.1-sol#high",
       "helper": "openai/gpt-6-luna#low",
+      "compaction": "openai/gpt-6.1-terra#medium",
       "solver": "openai/gpt-6-astra#high",
       "solverMax": "openai/gpt-6-astra#max"
     },
-    "opencode-go": {
-      "label": "OpenCode Go",
-      "provider": "opencode-go",
+    "oai-lc": {
+      "label": "OAI-LC",
+      "description": "OpenAI low cost: Terra 6.1 everywhere, Luna for search and checks, Sol 6.1 solves",
+      "requires": ["openai"],
+      "lead": "openai/gpt-6.1-terra#high",
+      "implementation": "openai/gpt-6.1-terra#medium",
+      "design": "openai/gpt-6.1-terra#high",
+      "explore": "openai/gpt-6-luna#low",
+      "tester": "openai/gpt-6-luna#low",
+      "review": "openai/gpt-6.1-terra#medium",
+      "helper": "openai/gpt-6-luna#low",
+      "compaction": "openai/gpt-6-luna#high",
+      "solver": "openai/gpt-6.1-sol#xhigh",
+      "solverMax": "openai/gpt-6-astra#high"
+    },
+    "ocgo-hq": {
+      "label": "OCGO-HQ",
+      "description": "OpenCode Go: Kimi K3.1 Pro leads and reviews, MiniMax M3.1 Flash implements, Gemini 4 Argon designs",
+      "requires": ["opencode-go"],
+      "lead": "opencode-go/kimi-k3.1-pro#high",
+      "implementation": "opencode-go/minimax-m3.1-flash#xhigh",
+      "design": "opencode-go/gemini-4-argon#high",
+      "explore": "opencode-go/gpt-6-luna#low",
+      "tester": "opencode-go/minimax-m3.1-flash#low",
+      "review": "opencode-go/kimi-k3.1-pro#high",
+      "helper": "opencode-go/mimo-v2.6-flash",
+      "compaction": "opencode-go/minimax-m3.1-flash#medium",
+      "solver": "opencode-go/gemini-4-argon#high",
+      "solverMax": "opencode-go/kimi-k3.1-pro#max"
+    },
+    "ocgo-lc": {
+      "label": "OCGO-LC",
+      "description": "OpenCode Go low cost: DeepSeek V4.1 Flash everywhere, Kimi K2.7 Code designs, Qwen3.8 Max solves",
+      "requires": ["opencode-go"],
       "lead": "opencode-go/deepseek-v4.1-flash#high",
       "implementation": "opencode-go/deepseek-v4.1-flash#high",
       "design": "opencode-go/kimi-k2.7-code",
       "explore": "opencode-go/gpt-6-luna#low",
-      "tester": "opencode-go/deepseek-v4.1-flash#high",
+      "tester": "opencode-go/deepseek-v4.1-flash#low",
+      "review": "opencode-go/deepseek-v4.1-flash#high",
       "helper": "opencode-go/mimo-v2.6-flash",
+      "compaction": "opencode-go/deepseek-v4.1-flash#high",
       "solver": "opencode-go/qwen3.8-max#medium",
       "solverMax": "opencode-go/qwen3.8-max#xhigh"
     },
+    "oai-ocgo-mix": {
+      "label": "OAI-OCGO-MIX",
+      "description": "Balanced across both subscriptions: OpenAI leads and implements, Go reviews, designs and does the cheap work",
+      "requires": ["openai", "opencode-go"],
+      "lead": "openai/gpt-6.1-sol#high",
+      "implementation": "openai/gpt-6.1-terra#high",
+      "design": "opencode-go/gemini-4-argon#high",
+      "explore": "opencode-go/gpt-6-luna#low",
+      "tester": "opencode-go/minimax-m3.1-flash#low",
+      "review": "opencode-go/kimi-k3.1-pro#high",
+      "helper": "opencode-go/mimo-v2.6-flash",
+      "compaction": "openai/gpt-6.1-terra#medium",
+      "solver": "openai/gpt-6-astra#high",
+      "solverMax": "openai/gpt-6-astra#max"
+    },
     "opencode-zen": {
-      "label": "OpenCode Zen",
-      "provider": "opencode",
+      "label": "ZEN",
       "lead": "opencode/gpt-6.1-sol#high",
       "implementation": "opencode/gpt-6-luna#high",
       "design": "opencode/gpt-6-luna#medium",
       "explore": "opencode/gpt-6-luna#low",
       "tester": "opencode/gpt-6-luna#medium",
+      "review": "opencode/gpt-6.1-sol#high",
       "helper": "opencode/gpt-6-luna#low",
+      "compaction": "opencode/gpt-6.1-sol#medium",
       "solver": "opencode/gpt-6-astra#high",
-      "solverMax": "opencode/gpt-6-astra#max"
+      "solverMax": "opencode/gpt-6-astra#max",
+      "requires": ["opencode"],
+      "description": "OpenCode Zen pay-as-you-go; GPT models through OpenCode"
     },
     "deepseek": {
-      "label": "Direct DeepSeek API",
-      "provider": "ocdb-deepseek",
+      "label": "DEEPSEEK",
       "lead": "ocdb-deepseek/deepseek-flash#high",
       "implementation": "ocdb-deepseek/deepseek-flash#high",
       "design": "ocdb-deepseek/deepseek-flash#high",
       "explore": "ocdb-deepseek/deepseek-flash#high",
       "tester": "ocdb-deepseek/deepseek-flash#high",
+      "review": "ocdb-deepseek/deepseek-flash#high",
       "helper": "ocdb-deepseek/deepseek-flash#high",
+      "compaction": "ocdb-deepseek/deepseek-flash#high",
       "solver": "ocdb-deepseek/deepseek-v4-pro#high",
       "solverMax": "ocdb-deepseek/deepseek-v4-pro#max",
       "providers": {
@@ -54,9 +119,7 @@
           "name": "DeepSeek API",
           "env": ["DEEPSEEK_API_KEY"],
           "package": "@opencode/ai/providers/openai-compatible",
-          "settings": {
-            "baseURL": "https://api.deepseek.com"
-          },
+          "settings": {"baseURL": "https://api.deepseek.com"},
           "models": {
             "deepseek-flash": {
               "modelID": "deepseek-flash",
@@ -64,8 +127,14 @@
                 "thinking": {"type": "enabled"}
               },
               "variants": [
-                {"id": "high", "body": {"reasoning_effort": "high"}},
-                {"id": "max", "body": {"reasoning_effort": "max"}}
+                {
+                  "id": "high",
+                  "body": {"reasoning_effort": "high"}
+                },
+                {
+                  "id": "max",
+                  "body": {"reasoning_effort": "max"}
+                }
               ]
             },
             "deepseek-v4-pro": {
@@ -74,13 +143,21 @@
                 "thinking": {"type": "enabled"}
               },
               "variants": [
-                {"id": "high", "body": {"reasoning_effort": "high"}},
-                {"id": "max", "body": {"reasoning_effort": "max"}}
+                {
+                  "id": "high",
+                  "body": {"reasoning_effort": "high"}
+                },
+                {
+                  "id": "max",
+                  "body": {"reasoning_effort": "max"}
+                }
               ]
             }
           }
         }
-      }
+      },
+      "requires": ["ocdb-deepseek"],
+      "description": "DeepSeek API directly; pay-as-you-go, untested end to end"
     }
   }
 }

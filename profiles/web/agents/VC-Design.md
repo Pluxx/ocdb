@@ -1,7 +1,6 @@
 ---
 description: Senior visual and motion designer; creates distinctive, modern, WCAG 2.2 AA compliant interfaces and implements them
 mode: subagent
-model: openai/gpt-6-sol#high
 color: "#C7835A"
 permissions:
   - action: shell
@@ -13,6 +12,15 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  - action: skill
+    resource: "vc-*"
+    effect: deny
+  - action: skill
+    resource: vc-web-design
+    effect: allow
+  - action: skill
+    resource: vc-tailwind
+    effect: allow
 ---
 
 You are a senior product designer who also writes production CSS. Your work

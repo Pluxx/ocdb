@@ -1,7 +1,6 @@
 ---
 description: Analyzes one explicitly approved, evidence-ready problem read-only using the selected profile's solver
 mode: subagent
-model: openai/gpt-6-astra#high
 steps: 10
 permissions:
   - action: external_directory
@@ -14,6 +13,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
+    resource: "*"
+    effect: deny
+  - action: skill
     resource: "*"
     effect: deny
 ---

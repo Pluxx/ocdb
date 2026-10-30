@@ -9,12 +9,15 @@ import { spawn } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 import { AGENTS, COMMANDS, SKILLS, executeCommand } from '../lib/cli.mjs';
+import { AGENT_ROLES, normalizeProfileId } from '../lib/model-profiles.mjs';
 import { ADDON_ROOT } from '../lib/openai-weekly.mjs';
 
 const profileIndex = process.argv.indexOf('--profile');
-const profile = profileIndex > 0 ? process.argv[profileIndex + 1] : 'openai';
+const profile = normalizeProfileId(profileIndex > 0 ? process.argv[profileIndex + 1] : 'oai-hq');
 const quiet = { log() {} };
 let failures = 0;
+// OpenCode reports models as { providerID, id | model, variant }.
+const modelRef = (m) => (typeof m === 'string' || !m ? m ?? null : `${m.providerID}/${m.id ?? m.model}${m.variant ? `#${m.variant}` : ''}`);
 const check = (ok, label, detail = '') => {
   console.log(`${ok ? '✔' : '✖'} ${label}${detail ? ` — ${detail}` : ''}`);
   if (!ok) failures++;
@@ -69,12 +72,14 @@ try {
   }
 
   console.log(`OpenCode loaded OCDB (profile ${profile}) from ${configDir}`);
-  for (const id of AGENTS) {
-    const agent = agents.find((candidate) => candidate.id === id);
-    const source = await readFile(path.join(configDir, 'agents', `${id}.md`), 'utf8');
-    const expected = source.match(/^model:\s*(\S+)\s*$/m)?.[1] ?? null;
-    const model = agent?.model ? `${agent.model.providerID}/${agent.model.id}${agent.model.variant ? `#${agent.model.variant}` : ''}` : null;
-    check(Boolean(agent) && model === expected, `agent ${id}`, agent ? (model ?? 'inherits model') : 'not loaded');
+  const catalog = JSON.parse(await readFile(new URL('../profiles/models.json', import.meta.url), 'utf8'));
+  const routes = catalog.profiles[profile];
+  // The sidebar plugin assigns every model, so this also proves its server part loaded.
+  const agentModels = async () => new Map(((await api('/api/agent')).data ?? []).map((agent) => [agent.id, modelRef(agent.model)]));
+  const loaded = await agentModels();
+  for (const [id, role] of Object.entries(AGENT_ROLES)) {
+    const builtIn = !AGENTS.has(id);
+    check(loaded.has(id) && loaded.get(id) === routes[role], `${builtIn ? 'built-in agent' : 'agent'} ${id}`, loaded.has(id) ? (loaded.get(id) ?? 'no model') : 'not loaded');
   }
 
   const config = await api('/api/config');
@@ -86,6 +91,25 @@ try {
 
   const commands = new Set(((await api('/api/command')).data ?? []).map((command) => command.name));
   for (const id of COMMANDS) check(commands.has(id), `command /${id}`);
+
+  // Live profile switching: pick another profile the connected providers can run,
+  // switch to it, check the agents were re-routed, then switch back.
+  const rpc = (method, input = {}) => api(`/api/rpc/ocdb-profiles/${method}`, { method: 'POST', body: JSON.stringify({ input }) });
+  const switcher = (await rpc('status')).output;
+  check(switcher?.installed === profile, 'profile switcher answers', switcher ? `installed ${switcher.installed}` : 'no response');
+  const leadModel = async () => (await agentModels()).get('VC-Orchestrator');
+  const target = switcher?.profiles.find((candidate) => candidate.available && candidate.id !== profile
+    && candidate.id !== 'deepseek' && catalog.profiles[candidate.id].lead !== routes.lead);
+  if (target) {
+    await rpc('select', { profile: target.id });
+    const switched = await leadModel();
+    check(switched === catalog.profiles[target.id].lead, `live switch to ${target.id}`, switched);
+    await rpc('select', { profile });
+    const restored = await leadModel();
+    check(restored === routes.lead, `live switch back to ${profile}`, restored);
+  } else {
+    console.log('- live switch skipped (no other profile is available with the connected providers)');
+  }
 
   const plugins = (await api('/api/plugin')).data ?? [];
   const active = (id) => plugins.find((plugin) => plugin.id === id)?.state?.status === 'active';

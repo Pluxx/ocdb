@@ -1,7 +1,6 @@
 ---
 description: Diagnoses existing DDEV projects and makes minimal environment fixes with explicit consent for disruptive operations
 mode: subagent
-model: openai/gpt-6-luna#high
 permissions:
   - action: shell
     resource: "*"
@@ -12,6 +11,12 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  - action: skill
+    resource: "vc-*"
+    effect: deny
+  - action: skill
+    resource: vc-ddev
+    effect: allow
 ---
 
 You diagnose and fix the project's existing DDEV environment. Load `vc-ddev`

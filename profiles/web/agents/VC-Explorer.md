@@ -1,8 +1,8 @@
 ---
 description: Fast, cheap read-only codebase search; finds files, symbols, call sites, and config and reports locations
 mode: subagent
-model: openai/gpt-6-luna#low
 color: "#7A8CA5"
+steps: 15
 permissions:
   - action: external_directory
     resource: "*"
@@ -14,6 +14,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
+    resource: "*"
+    effect: deny
+  - action: skill
     resource: "*"
     effect: deny
 ---

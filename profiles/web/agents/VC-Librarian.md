@@ -1,8 +1,8 @@
 ---
 description: Cheap read-only documentation research; answers version-specific API, changelog, and package questions with source links
 mode: subagent
-model: openai/gpt-6-luna#low
 color: "#8C7AA5"
+steps: 20
 permissions:
   - action: external_directory
     resource: "*"
@@ -14,6 +14,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: shell
+    resource: "*"
+    effect: deny
+  - action: skill
     resource: "*"
     effect: deny
 ---

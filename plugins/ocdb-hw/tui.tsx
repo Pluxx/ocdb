@@ -1,9 +1,16 @@
 import { Plugin, usePlugin } from "@opencode/plugin/tui"
-import { For, createSignal, onCleanup, onMount } from "solid-js"
+import type { Context } from "@opencode/plugin/tui/context"
+import { For, createSignal, onCleanup, onMount, type Accessor } from "solid-js"
 import { createSystemSampler } from "./metrics.mjs"
 import { summarizeActivity } from "./activity.mjs"
+import { OcdbProfiles } from "./rpc.ts"
 
 type SystemMetrics = Awaited<ReturnType<ReturnType<typeof createSystemSampler>>>
+type ProfileStatus = {
+  installed: string
+  selected: string
+  profiles: { id: string; label: string; description: string; requires: string[]; available: boolean; missing: string[] }[]
+}
 
 const MAX_LISTED_SUBAGENTS = 5
 
@@ -17,7 +24,7 @@ function shorten(text: string, max = 28): string {
   return text.length > max ? `${text.slice(0, max - 1)}…` : text
 }
 
-function OcdbSection(props: { sessionID: string }) {
+function OcdbSection(props: { sessionID: string; profiles: Accessor<ProfileStatus | null>; onPickProfile: () => void }) {
   const context = usePlugin()
   const [metrics, setMetrics] = createSignal<SystemMetrics | null>(null)
   const [failed, setFailed] = createSignal(false)
@@ -66,9 +73,19 @@ function OcdbSection(props: { sessionID: string }) {
   })
 
   const text = context.theme.text
+  const profile = () => {
+    const status = props.profiles()
+    return status?.profiles.find((candidate) => candidate.id === status.selected) ?? null
+  }
   return (
     <box flexDirection="column" paddingTop={1}>
       <text fg={text.base} attributes={1}>OCDB</text>
+      {profile() ? (
+        <box flexDirection="row" onMouseUp={() => props.onPickProfile()}>
+          <text fg={text.base}>Profile  {profile()!.label} </text>
+          <text fg={text.muted}>· switch</text>
+        </box>
+      ) : null}
       {activity() ? (
         <box flexDirection="row">
           <text fg={text.base}>Agent  {activity()!.agent ?? "—"} </text>
@@ -109,12 +126,82 @@ function OcdbSection(props: { sessionID: string }) {
   )
 }
 
+function createProfileSwitcher(context: Context) {
+  const [profiles, setProfiles] = createSignal<ProfileStatus | null>(null)
+  const location = () => context.location ?? context.data.location.default()
+  const rpc = () => context.client.rpc(OcdbProfiles)
+
+  const refresh = async () => {
+    try {
+      setProfiles((await rpc().status({}, { location: location() })) as ProfileStatus)
+    } catch {
+      // An older or missing server part just hides the profile line.
+      setProfiles(null)
+    }
+  }
+
+  const pick = async () => {
+    await refresh()
+    const status = profiles()
+    if (!status) {
+      context.ui.toast.show({ title: "OCDB", message: "Profile switching is unavailable; restart the OpenCode service", variant: "error" })
+      return
+    }
+    const choice = await context.ui.dialog.select({
+      title: "OCDB model profile",
+      current: status.selected,
+      options: status.profiles.map((profile) => ({
+        title: `${profile.label}${profile.id === status.installed ? "  (installed)" : ""}`,
+        value: profile.id,
+        description: profile.available ? profile.description : `Not available: ${profile.missing.join(", ")}`,
+        disabled: !profile.available && profile.id !== status.installed,
+        category: profile.requires.join(" + "),
+      })),
+    })
+    if (!choice || choice === status.selected) return
+    try {
+      const next = (await rpc().select({ profile: choice }, { location: location() })) as ProfileStatus
+      setProfiles(next)
+      const label = next.profiles.find((profile) => profile.id === choice)?.label ?? choice
+      context.ui.toast.show({ title: "OCDB", message: `Switched to ${label}; applies to the next request`, variant: "success" })
+    } catch (error) {
+      context.ui.toast.show({ title: "OCDB", message: `Could not switch profile: ${(error as Error).message}`, variant: "error" })
+    }
+  }
+
+  return { profiles, refresh, pick }
+}
+
 export default Plugin.define({
   id: "ocdb.hardware.tui",
   setup(context) {
-    return context.ui.slot({
+    const switcher = createProfileSwitcher(context)
+    void switcher.refresh()
+    // Picks up switches made from another TUI or project.
+    const poll = setInterval(() => void switcher.refresh(), 30_000)
+    ;(poll as ReturnType<typeof setInterval> & { unref?: () => void }).unref?.()
+    context.keymap.layer(() => ({
+      mode: "global",
+      commands: [
+        {
+          id: "ocdb.profile",
+          title: "Switch OCDB model profile",
+          group: "OCDB",
+          palette: true,
+          slash: { name: "ocdb-profile" },
+          run: () => void switcher.pick(),
+        },
+      ],
+    }))
+    const removeSlot = context.ui.slot({
       append: "sidebar.content",
-      render: (input) => <OcdbSection sessionID={input.sessionID} />,
+      render: (input) => (
+        <OcdbSection sessionID={input.sessionID} profiles={switcher.profiles} onPickProfile={() => void switcher.pick()} />
+      ),
     })
+    return () => {
+      clearInterval(poll)
+      removeSlot()
+    }
   },
 })

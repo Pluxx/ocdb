@@ -1,11 +1,91 @@
 ---
 description: Discovers and runs project validation, reporting exact commands and evidence without editing source or tests
 mode: subagent
-model: openai/gpt-6-luna#medium
 permissions:
   - action: shell
     resource: "*"
     effect: ask
+  - action: shell
+    resource: "git status *"
+    effect: allow
+  - action: shell
+    resource: "git diff *"
+    effect: allow
+  - action: shell
+    resource: "git log *"
+    effect: allow
+  - action: shell
+    resource: "git show *"
+    effect: allow
+  - action: shell
+    resource: "git branch --show-current"
+    effect: allow
+  - action: shell
+    resource: "ls *"
+    effect: allow
+  - action: shell
+    resource: pwd
+    effect: allow
+  - action: shell
+    resource: "composer show *"
+    effect: allow
+  - action: shell
+    resource: "npm ls *"
+    effect: allow
+  - action: shell
+    resource: "ddev describe *"
+    effect: allow
+  - action: shell
+    resource: "ddev composer show *"
+    effect: allow
+  - action: shell
+    resource: "vendor/bin/phpunit *"
+    effect: allow
+  - action: shell
+    resource: "bin/phpunit *"
+    effect: allow
+  - action: shell
+    resource: "ddev exec vendor/bin/phpunit *"
+    effect: allow
+  - action: shell
+    resource: "ddev exec bin/phpunit *"
+    effect: allow
+  - action: shell
+    resource: "vendor/bin/phpstan analyse *"
+    effect: allow
+  - action: shell
+    resource: "ddev exec vendor/bin/phpstan analyse *"
+    effect: allow
+  - action: shell
+    resource: "vendor/bin/php-cs-fixer fix --dry-run *"
+    effect: allow
+  - action: shell
+    resource: "ddev exec vendor/bin/php-cs-fixer fix --dry-run *"
+    effect: allow
+  - action: shell
+    resource: "composer test *"
+    effect: allow
+  - action: shell
+    resource: "ddev composer test *"
+    effect: allow
+  - action: shell
+    resource: "npm test *"
+    effect: allow
+  - action: shell
+    resource: "npm run test *"
+    effect: allow
+  - action: shell
+    resource: "npm run lint *"
+    effect: allow
+  - action: shell
+    resource: "ddev npm test *"
+    effect: allow
+  - action: shell
+    resource: "ddev npm run test *"
+    effect: allow
+  - action: shell
+    resource: "ddev npm run lint *"
+    effect: allow
   - action: external_directory
     resource: "*"
     effect: ask
@@ -13,6 +93,9 @@ permissions:
     resource: "*"
     effect: deny
   - action: edit
+    resource: "*"
+    effect: deny
+  - action: skill
     resource: "*"
     effect: deny
 ---

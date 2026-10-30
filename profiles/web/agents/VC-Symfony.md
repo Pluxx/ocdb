@@ -1,7 +1,6 @@
 ---
 description: Implements version-aware PHP, Symfony and TYPO3 changes (extensions, site packages, upgrades) using project conventions and caller-level tests
 mode: subagent
-model: openai/gpt-6-luna#high
 permissions:
   - action: shell
     resource: "*"
@@ -12,6 +11,21 @@ permissions:
   - action: subagent
     resource: "*"
     effect: deny
+  - action: skill
+    resource: "vc-*"
+    effect: deny
+  - action: skill
+    resource: vc-symfony
+    effect: allow
+  - action: skill
+    resource: vc-TYPO3
+    effect: allow
+  - action: skill
+    resource: vc-TYPO3-upgrade
+    effect: allow
+  - action: skill
+    resource: vc-ddev
+    effect: allow
 ---
 
 You implement PHP changes within the files you were assigned: Symfony apps and

@@ -21,9 +21,8 @@ async function setup() {
   const dest = path.join(root, 'config');
   for (const id of agentIds) {
     await mkdir(path.join(source, 'agents'), { recursive: true });
-    const model = id === 'VC-Orchestrator' ? 'openai/gpt-6.1-sol#high' : id === 'VC-Solver' ? 'openai/gpt-6-astra#high' : id === 'VC-Design' ? 'openai/gpt-6-luna#medium' : ['VC-Explorer', 'VC-Librarian'].includes(id) ? 'openai/gpt-6-luna#low' : id === 'VC-Tester' ? 'openai/gpt-6-luna#medium' : 'openai/gpt-6-luna#high';
     const body = id === 'VC-Orchestrator' ? 'agent-v1\n' : `${id}\n`;
-    await writeFile(path.join(source, 'agents', `${id}.md`), id === 'VC-Reviewer' ? `${body}` : `---\nmodel: ${model}\n---\n${body}`);
+    await writeFile(path.join(source, 'agents', `${id}.md`), `---\ndescription: ${id}\n---\n${body}`);
   }
   for (const id of skillIds) {
     await mkdir(path.join(source, 'skills', id), { recursive: true });
@@ -31,24 +30,11 @@ async function setup() {
   }
   for (const id of commandIds) {
     await mkdir(path.join(source, 'commands'), { recursive: true });
-    const content = id === 'vc-web' ? 'command-v1\n' : `${id}\n`;
-    await writeFile(path.join(source, 'commands', `${id}.md`), id === 'vc-solve-max' ? `---\nmodel: openai/gpt-6-astra#max\n---\n${content}` : content);
+    await writeFile(path.join(source, 'commands', `${id}.md`), id === 'vc-web' ? 'command-v1\n' : `${id}\n`);
   }
   await mkdir(pluginDir, { recursive: true });
-  for (const file of ['package.json', 'index.ts', 'tui.tsx', 'metrics.mjs', 'activity.mjs']) await writeFile(path.join(pluginDir, file), `plugin fixture ${file}\n`);
-  const catalog = { version: 1, preferenceOrder: ['openai', 'opencode-go', 'opencode-zen', 'deepseek'], profiles: {} };
-  const modelRows = {
-    openai: ['openai/gpt-6.1-sol#high', 'openai/gpt-6-luna#high', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-astra#high', 'openai/gpt-6-astra#max'],
-    'opencode-go': ['opencode-go/deepseek-v4.1-flash#high', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
-    'opencode-zen': ['opencode/gpt-6.1-sol#high', 'opencode/gpt-6-luna#high', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-astra#high', 'opencode/gpt-6-astra#max'],
-    deepseek: ['ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-v4-pro#high', 'ocdb-deepseek/deepseek-v4-pro#max'],
-  };
-  for (const [id, models] of Object.entries(modelRows)) catalog.profiles[id] = {
-    label: id, provider: id === 'opencode-zen' ? 'opencode' : id === 'deepseek' ? 'ocdb-deepseek' : id,
-    lead: models[0], implementation: models[1], design: models[2], explore: models[3], tester: models[4], helper: models[5], solver: models[6], solverMax: models[7],
-    ...(id === 'deepseek' ? { providers: { 'ocdb-deepseek': { npm: ['@ai-sdk/openai-compatible'], options: { baseURL: 'https://api.deepseek.com' }, models: {} } } } : {}),
-  };
-  await writeFile(modelsFile, JSON.stringify(catalog));
+  for (const file of ['package.json', 'index.ts', 'tui.tsx', 'rpc.ts', 'profiles.mjs', 'metrics.mjs', 'activity.mjs']) await writeFile(path.join(pluginDir, file), `plugin fixture ${file}\n`);
+  await writeFile(modelsFile, await readFile(new URL('../profiles/models.json', import.meta.url)));
   return { root, source, pluginDir, modelsFile, dest };
 }
 async function run(command, ctx, mode = 'apply') {
@@ -68,47 +54,61 @@ test('fresh install tracks assets and repeated install is idempotent', async () 
   assert.deepEqual(await readFile(path.join(c.dest, '.vc-ocdb/state.json')), stateBefore);
 });
 
-test('profile selection repaints only assigned roles, max command variant, and persists across unselected update', async () => {
+test('the selected profile is rendered into the plugin catalog and persists across an unselected update', async () => {
   const c = await setup();
-  await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: 'opencode-go', log: { log() {} } });
-  const installed = (rel) => readFile(path.join(c.dest, rel), 'utf8');
-  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
-  assert.match(await installed('agents/VC-Symfony.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
-  assert.match(await installed('agents/VC-Design.md'), /^model: opencode-go\/kimi-k2\.7-code$/m);
-  assert.match(await installed('agents/VC-Solver.md'), /^model: opencode-go\/qwen3\.8-max#medium$/m);
-  assert.match(await installed('commands/vc-solve-max.md'), /^model: opencode-go\/qwen3\.8-max#xhigh$/m);
-  assert.doesNotMatch(await installed('agents/VC-Solver.md'), /openai\/gpt-6-astra/);
-  assert.doesNotMatch(await installed('agents/VC-Reviewer.md'), /^model:/m);
-  assert.equal(JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/state.json'), 'utf8')).profile, 'opencode-go');
-  await run('install', c);
-  assert.match(await installed('agents/VC-Orchestrator.md'), /^model: opencode-go\/deepseek-v4\.1-flash#high$/m);
+  const install = (options) => executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', log: { log() {} }, ...options });
+  const routing = async () => JSON.parse(await readFile(path.join(c.dest, 'plugins/ocdb-hw/catalog.json'), 'utf8'));
+  await install({ profile: 'OCGO-LC' });
+  const catalog = await routing();
+  assert.equal(catalog.installed, 'ocgo-lc');
+  assert.deepEqual(Object.keys(catalog.profiles), ['oai-ocgo-mix', 'oai-hq', 'ocgo-hq', 'opencode-zen', 'deepseek', 'oai-lc', 'ocgo-lc']);
+  assert.equal(catalog.agents['VC-Solver-Max'], 'solverMax');
+  assert.equal(catalog.agents.compaction, 'compaction');
+  assert.equal(catalog.profiles['ocgo-lc'].lead, 'opencode-go/deepseek-v4.1-flash#high');
+  assert.equal(JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/state.json'), 'utf8')).profile, 'ocgo-lc');
+  await install({});
+  assert.equal((await routing()).installed, 'ocgo-lc');
 });
 
-test('direct DeepSeek profile renders every routed role inside its custom provider', async () => {
+test('VC-Solver-Max is derived from VC-Solver and agent sources may not set a model', async () => {
+  const c = await setup();
+  await run('install', c);
+  const max = await readFile(path.join(c.dest, 'agents/VC-Solver-Max.md'), 'utf8');
+  assert.match(max, /^description: Highest-effort VC-Solver; runs only through the \/vc-solve-max command$/m);
+  assert.match(max, /^VC-Solver$/m);
+  await writeFile(path.join(c.source, 'agents/VC-Symfony.md'), '---\nmodel: openai/gpt-6-luna#high\n---\nVC-Symfony\n');
+  await assert.rejects(run('install', c), /agents\/VC-Symfony\.md must not set a model/);
+});
+
+test('profile IDs from earlier releases map to their replacements', async () => {
+  const c = await setup();
+  await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: 'openai', log: { log() {} } });
+  const statePath = path.join(c.dest, '.vc-ocdb/state.json');
+  assert.equal(JSON.parse(await readFile(statePath, 'utf8')).profile, 'oai-hq');
+  const state = JSON.parse(await readFile(statePath, 'utf8'));
+  await writeFile(statePath, JSON.stringify({ ...state, profile: 'opencode-go' }));
+  await run('install', c);
+  assert.equal(JSON.parse(await readFile(statePath, 'utf8')).profile, 'ocgo-lc');
+});
+
+test('--providers picks the first profile the given providers can run', async () => {
+  const c = await setup();
+  const pick = async (providers) => {
+    await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', providers, log: { log() {} } });
+    return JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/state.json'), 'utf8')).profile;
+  };
+  assert.equal(await pick(['opencode-go']), 'ocgo-hq');
+  assert.equal(await pick(['openai', 'go']), 'oai-ocgo-mix');
+  assert.equal(await pick(['openai']), 'oai-hq');
+  assert.equal(await pick(['zen']), 'opencode-zen');
+  await assert.rejects(pick(['anthropic']), /--providers accepts/);
+});
+
+test('direct DeepSeek profile asks for activation to register its provider', async () => {
   const c = await setup();
   const messages = [];
   await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: 'deepseek', log: { log(message) { messages.push(message); } } });
-  assert.match(await readFile(path.join(c.dest, 'agents/VC-Orchestrator.md'), 'utf8'), /^model: ocdb-deepseek\/deepseek-flash#high$/m);
-  assert.match(await readFile(path.join(c.dest, 'agents/VC-Solver.md'), 'utf8'), /^model: ocdb-deepseek\/deepseek-v4-pro#high$/m);
-  assert.match(await readFile(path.join(c.dest, 'commands/vc-solve-max.md'), 'utf8'), /^model: ocdb-deepseek\/deepseek-v4-pro#max$/m);
   assert.ok(messages.some((message) => message.includes('ocdb activate --apply')));
-});
-
-test('all four supported profiles paint every routed role', async () => {
-  const c = await setup();
-  const routes = {
-    openai: ['openai/gpt-6.1-sol#high', 'openai/gpt-6-luna#high', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-luna#medium', 'openai/gpt-6-luna#low', 'openai/gpt-6-astra#high', 'openai/gpt-6-astra#max'],
-    'opencode-go': ['opencode-go/deepseek-v4.1-flash#high', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/kimi-k2.7-code', 'opencode-go/gpt-6-luna#low', 'opencode-go/deepseek-v4.1-flash#high', 'opencode-go/mimo-v2.6-flash', 'opencode-go/qwen3.8-max#medium', 'opencode-go/qwen3.8-max#xhigh'],
-    'opencode-zen': ['opencode/gpt-6.1-sol#high', 'opencode/gpt-6-luna#high', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-luna#medium', 'opencode/gpt-6-luna#low', 'opencode/gpt-6-astra#high', 'opencode/gpt-6-astra#max'],
-    deepseek: ['ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-flash#high', 'ocdb-deepseek/deepseek-v4-pro#high', 'ocdb-deepseek/deepseek-v4-pro#max'],
-  };
-  for (const [id, [lead, implementation, design, explore, tester, helper, solver, solverMax]] of Object.entries(routes)) {
-    await executeCommand('install', { configDir: c.dest, sourceDir: c.source, pluginDir: c.pluginDir, modelsFile: c.modelsFile, mode: 'apply', profile: id, log: { log() {} } });
-    const content = async (rel) => readFile(path.join(c.dest, rel), 'utf8');
-    for (const [relative, model] of [['agents/VC-Orchestrator.md', lead], ['agents/VC-Symfony.md', implementation], ['agents/VC-Design.md', design], ['agents/VC-Explorer.md', explore], ['agents/VC-Librarian.md', explore], ['agents/VC-Tester.md', tester], ['agents/VC-Solver.md', solver], ['commands/vc-solve-max.md', solverMax]]) {
-      assert.ok((await content(relative)).includes(`model: ${model}`), `${id} ${relative} should use ${model}`);
-    }
-  }
 });
 
 test('hardware plugin files are copied byte-for-byte and ownership-protected', async () => {
@@ -172,27 +172,44 @@ test('modified owned files prevent updates and uninstall', async () => {
   const c = await setup();
   await run('install', c);
   await writeFile(path.join(c.dest, 'agents/VC-Orchestrator.md'), 'local edit');
-  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v2\n');
+  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\ndescription: VC-Orchestrator\n---\nagent-v2\n');
   await assert.rejects(run('install', c), /locally modified/);
   await assert.rejects(run('uninstall', c), /locally modified/);
   assert.equal(await readFile(path.join(c.dest, 'agents/VC-Orchestrator.md'), 'utf8'), 'local edit');
 });
 
+test('a stale ledger hash on a file OCDB rendered does not block update or uninstall', async () => {
+  const c = await setup();
+  await run('install', c);
+  const stateFile = path.join(c.dest, '.vc-ocdb/state.json');
+  const stale = async () => {
+    const state = JSON.parse(await readFile(stateFile, 'utf8'));
+    state.assets['agents/VC-Orchestrator.md'] = '0'.repeat(64);
+    await writeFile(stateFile, JSON.stringify(state));
+  };
+  await stale();
+  await run('install', c);
+  assert.notEqual(JSON.parse(await readFile(stateFile, 'utf8')).assets['agents/VC-Orchestrator.md'], '0'.repeat(64), 'the update records the real hash');
+  await stale();
+  await run('uninstall', c);
+  await assert.rejects(lstat(path.join(c.dest, 'agents/VC-Orchestrator.md')), { code: 'ENOENT' });
+});
+
 test('managed update and uninstall preserve prior bytes in backups', async () => {
   const c = await setup();
   await run('install', c);
-  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v2\n');
+  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\ndescription: VC-Orchestrator\n---\nagent-v2\n');
   await run('install', c);
   const backups = path.join(c.dest, '.vc-ocdb/backups');
   const entries = await readdir(backups);
   assert.ok(entries.length >= 1);
   let saved = false;
   for (const entry of entries) {
-    try { saved ||= (await readFile(path.join(backups, entry, 'agents/VC-Orchestrator.md'), 'utf8')) === '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v1\n'; } catch {}
+    try { saved ||= (await readFile(path.join(backups, entry, 'agents/VC-Orchestrator.md'), 'utf8')) === '---\ndescription: VC-Orchestrator\n---\nagent-v1\n'; } catch {}
   }
   assert.ok(saved);
   await run('uninstall', c);
-  assert.equal(await readFile(path.join(backups, entries[0], 'agents/VC-Orchestrator.md'), 'utf8'), '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v1\n');
+  assert.equal(await readFile(path.join(backups, entries[0], 'agents/VC-Orchestrator.md'), 'utf8'), '---\ndescription: VC-Orchestrator\n---\nagent-v1\n');
   await assert.rejects(lstat(path.join(c.dest, 'agents/VC-Orchestrator.md')), { code: 'ENOENT' });
   assert.deepEqual(JSON.parse(await readFile(path.join(c.dest, '.vc-ocdb/state.json'), 'utf8')).assets, {});
 });
@@ -222,7 +239,7 @@ test('failed restoration leaves durable old-byte backup and releases lock', asyn
   const c = await setup();
   await run('install', c);
   const ownedFile = path.join(c.dest, 'agents/VC-Orchestrator.md');
-  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v2\n');
+  await writeFile(path.join(c.source, 'agents/VC-Orchestrator.md'), '---\ndescription: VC-Orchestrator\n---\nagent-v2\n');
   await assert.rejects(executeCommand('install', {
     configDir: c.dest,
     sourceDir: c.source,
@@ -244,7 +261,7 @@ test('failed restoration leaves durable old-byte backup and releases lock', asyn
   for (const root of backupRoots) {
     try { recoveredBytes = await readFile(path.join(c.dest, '.vc-ocdb/backups', root, 'agents/VC-Orchestrator.md')); } catch {}
   }
-  assert.equal(recoveredBytes?.toString(), '---\nmodel: openai/gpt-6.1-sol#high\n---\nagent-v1\n');
+  assert.equal(recoveredBytes?.toString(), '---\ndescription: VC-Orchestrator\n---\nagent-v1\n');
 });
 
 test('malformed and traversal ledgers are refused', async () => {
